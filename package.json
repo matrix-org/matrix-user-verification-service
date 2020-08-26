@@ -1,0 +1,37 @@
+{
+  "name": "matrix-verify-user-bot",
+  "version": "0.0.1",
+  "description": "Matrix bot to verify users.",
+  "engines": {
+    "node": ">=14"
+  },
+  "main": "src/app.js",
+  "scripts": {
+    "dev": "node_modules/.bin/nodemon src/app.js localhost 3000",
+    "test": "node_modules/.bin/mocha tests/",
+    "start": "node src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matrix-org/matrix-verify-user-bot"
+  },
+  "keywords": [
+    "matrix",
+    "synapse",
+    "bot"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^7.7.0",
+    "mocha": "^8.1.1",
+    "nodemon": "^2.0.4",
+    "sinon": "^9.0.3"
+  },
+  "dependencies": {
+    "axios": "^0.20.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1"
+  }
+}
