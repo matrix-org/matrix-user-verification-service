@@ -2,7 +2,7 @@ const axios = require('axios');
 
 require('dotenv').config();
 
-const homeserverUrl = process.env.VERIFY_BOT_HOMESERVER_URL;
+const homeserverUrl = process.env.UVS_HOMESERVER_URL;
 
 function sanityCheckRequest(req, res, fields=[]) {
     if (!req.body) {
@@ -46,7 +46,7 @@ async function verifyRoomMembership(userId, roomId) {
             `${homeserverUrl}/_synapse/admin/v1/rooms/${roomId}/members`,
             {
                 headers: {
-                    Authorization: `Bearer ${process.env.VERIFY_BOT_ACCESS_TOKEN}`,
+                    Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
                 },
             },
         );

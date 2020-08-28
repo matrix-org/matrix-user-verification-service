@@ -4,8 +4,8 @@ const routes = require('./routes');
 require('dotenv').config();
 
 const app = express();
-const listenAddress = process.env.VERIFY_BOT_LISTEN_ADDRESS || '127.0.0.1';
-const port = process.env.VERIFY_BOT_PORT || 3000;
+const listenAddress = process.env.UVS_LISTEN_ADDRESS || '127.0.0.1';
+const port = process.env.UVS_PORT || 3000;
 
 app.use(express.json());
 

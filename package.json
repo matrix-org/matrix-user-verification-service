@@ -1,7 +1,7 @@
 {
-  "name": "matrix-verify-user-bot",
+  "name": "matrix-user-verification-service",
   "version": "0.0.1",
-  "description": "Matrix bot to verify users.",
+  "description": "Matrix service to verify users.",
   "engines": {
     "node": ">=14"
   },
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/matrix-org/matrix-verify-user-bot"
+    "url": "https://github.com/matrix-org/matrix-user-verification-service"
   },
   "keywords": [
     "matrix",

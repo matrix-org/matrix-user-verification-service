@@ -1,6 +1,6 @@
-# Matrix Verify User Bot
+# Matrix User Verification Service
 
-Bot to verify details of a user based on a Open ID Connect token.
+Service to verify details of a user based on a Open ID Connect token.
 
 Main features:
 
@@ -21,14 +21,15 @@ npm install
 Copy the default `.env.default` to `.env` and modify as needed.
 
 ```
-# Admin token of the bot user (synapse only)
-VERIFY_BOT_ACCESS_TOKEN=foobar
+# Admin token (synapse only)
+# Required for the service to verify room membership
+UVS_ACCESS_TOKEN=foobar
 # Homeserver URL
-VERIFY_BOT_HOMESERVER_URL=https://matrix.org
+UVS_HOMESERVER_URL=https://matrix.org
 # (Optional) listen address of the bot
-VERIFY_BOT_LISTEN_ADDRESS=127.0.0.1
+UVS_LISTEN_ADDRESS=127.0.0.1
 # (Optional) listen port of the bot
-VERIFY_BOT_PORT=3000
+UVS_PORT=3000
 ```
 
 ### Running
