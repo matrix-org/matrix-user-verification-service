@@ -3,6 +3,8 @@ const chai = require('chai');
 const sinon = require('sinon');
 const routes = require('../src/routes');
 
+require('../src/logger');
+
 const expect = chai.expect;
 
 describe('app', function() {

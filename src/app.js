@@ -1,5 +1,6 @@
 const express = require('express');
 const routes = require('./routes');
+const logger = require('./logger');
 
 require('dotenv').config();
 
@@ -18,8 +19,8 @@ app.post('/verify/user', routes.postVerifyUser);
 // noinspection JSCheckFunctionSignatures
 app.post('/verify/user_in_room', routes.postVerifyUserInRoom);
 
-console.log(`Attempting to listen on ${listenAddress}:${port}`);
+logger.log('info', `Attempting to listen on ${listenAddress}:${port}`);
 
 app.listen(port, listenAddress, () => {
-    console.log(`Verify user service listening at ${listenAddress}:${port}`);
+    logger.log('info', `Verify user service listening at ${listenAddress}:${port}`);
 });

@@ -30,6 +30,9 @@ UVS_HOMESERVER_URL=https://matrix.org
 UVS_LISTEN_ADDRESS=127.0.0.1
 # (Optional) listen port of the bot
 UVS_PORT=3000
+# (Optional) log level, defaults to 'info'
+# See choices here: https://github.com/winstonjs/winston#logging-levels
+UVS_LOG_LEVEL=info
 ```
 
 ### Running
