@@ -1,6 +1,6 @@
 const axios = require('axios');
 const logger = require('./logger');
-const {errorLogger, stringify} = require('./utils');
+const {errorLogger, tryStringify} = require('./utils');
 
 require('dotenv').config();
 
@@ -46,7 +46,7 @@ async function verifyOpenIDToken(token) {
         logger.log('debug', 'Successful token verification');
         return response.data.sub;
     }
-    logger.log('debug', `Failed token verification: ${stringify(response)}`);
+    logger.log('debug', `Failed token verification: ${tryStringify(response)}`);
     return false;
 }
 

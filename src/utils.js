@@ -1,5 +1,13 @@
 const logger = require('./logger');
 
+function tryStringify(obj) {
+    try {
+        return JSON.stringify(obj);
+    } catch (error) {
+        return obj;
+    }
+}
+
 function errorLogger(error) {
     if (error.response) {
         const response = error.response;
@@ -9,10 +17,10 @@ function errorLogger(error) {
         }
         logger.log(
             'debug',
-            `Verify token failed: ${response.status}, ${stringify(response.headers)}, ${stringify(response.data)}`,
+            `Verify token failed: ${response.status}, ${tryStringify(response.headers)}, ${tryStringify(response.data)}`,
         );
     } else if (error.request) {
-        logger.log('error', `No response received: ${stringify(error.request)}`);
+        logger.log('error', `No response received: ${tryStringify(error.request)}`);
     } else {
         logger.log('error', `Failed to make verify request: ${error.message}`);
     }
@@ -20,22 +28,14 @@ function errorLogger(error) {
 
 function requestLogger(req) {
     if (req.method === 'POST') {
-        logger.log('info', `${req.method} ${req.path}: ${stringify(req.body)}`);
+        logger.log('info', `${req.method} ${req.path}: ${tryStringify(req.body)}`);
     } else {
         logger.log('info', `${req.method} ${req.path}`);
-    }
-}
-
-function stringify(obj) {
-    try {
-        return JSON.stringify(obj);
-    } catch (error) {
-        return obj;
     }
 }
 
 module.exports = {
     errorLogger,
     requestLogger,
-    stringify,
+    tryStringify,
 };
