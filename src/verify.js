@@ -12,7 +12,7 @@ function sanityCheckRequest(req, res, fields=[]) {
 
         const msg = 'Invalid request: no JSON content found in body.';
         res.send(msg);
-        logger.log('warning', msg);
+        logger.log('warn', msg);
         return false;
     }
     for (const field of fields) {
@@ -23,7 +23,7 @@ function sanityCheckRequest(req, res, fields=[]) {
         ) {
             res.status(400);
             const msg = `Invalid request: ${field} not found or with empty value in the JSON payload.`;
-            logger.log('warning', msg);
+            logger.log('warn', msg);
             res.send(msg);
             return false;
         }
