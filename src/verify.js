@@ -12,7 +12,7 @@ function sanityCheckRequest(req, res, fields=[]) {
 
         const msg = 'Invalid request: no JSON content found in body.';
         res.send(msg);
-        logger.log('warn', msg);
+        logger.log('warn', msg, {requestId: req.requestId});
         return false;
     }
     for (const field of fields) {
@@ -23,38 +23,38 @@ function sanityCheckRequest(req, res, fields=[]) {
         ) {
             res.status(400);
             const msg = `Invalid request: ${field} not found or with empty value in the JSON payload.`;
-            logger.log('warn', msg);
+            logger.log('warn', msg, {requestId: req.requestId});
             res.send(msg);
             return false;
         }
     }
-    logger.log('debug', 'Request sanity check ok');
+    logger.log('debug', 'Request sanity check ok', {requestId: req.requestId});
     return true;
 }
 
-async function verifyOpenIDToken(token) {
+async function verifyOpenIDToken(req) {
     let response;
     try {
         const url = `${homeserverUrl}/_matrix/federation/v1/openid/userinfo`;
-        logger.log('debug', `Making request to: ${url}?access_token=redacted`);
-        response = await axios.get(`${url}?access_token=${token}`);
+        logger.log('debug', `Making request to: ${url}?access_token=redacted`, {requestId: req.requestId});
+        response = await axios.get(`${url}?access_token=${req.body.token}`);
     } catch (error) {
-        errorLogger(error);
+        errorLogger(error, req);
         return false;
     }
     if (response && response.data && response.data.sub) {
-        logger.log('debug', 'Successful token verification');
+        logger.log('debug', 'Successful token verification', {requestId: req.requestId});
         return response.data.sub;
     }
-    logger.log('debug', `Failed token verification: ${tryStringify(response)}`);
+    logger.log('debug', `Failed token verification: ${tryStringify(response)}`, {requestId: req.requestId});
     return false;
 }
 
-async function verifyRoomMembership(userId, roomId) {
+async function verifyRoomMembership(userId, req) {
     let response;
     try {
-        const url = `${homeserverUrl}/_synapse/admin/v1/rooms/${roomId}/members`;
-        logger.log('debug', `Making request to: ${url}`);
+        const url = `${homeserverUrl}/_synapse/admin/v1/rooms/${req.body.room_id}/members`;
+        logger.log('debug', `Making request to: ${url}`, {requestId: req.requestId});
         response = await axios.get(
             url,
             {
@@ -64,19 +64,19 @@ async function verifyRoomMembership(userId, roomId) {
             },
         );
     } catch (error) {
-        errorLogger(error);
+        errorLogger(error, req);
         return false;
     }
     if (response && response.data && response.data.members) {
         if (response.data.members.includes(userId)) {
-            logger.log('debug', 'Successful room membership verification');
+            logger.log('debug', 'Successful room membership verification', {requestId: req.requestId});
             return true;
         } else {
-            logger.log('debug', 'User is not in the room.');
+            logger.log('debug', 'User is not in the room.', {requestId: req.requestId});
         }
     }
     // Don't print out response to logs - it contains the member list.
-    logger.log('debug', 'Failed room membership verification.');
+    logger.log('debug', 'Failed room membership verification.', {requestId: req.requestId});
     return false;
 }
 

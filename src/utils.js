@@ -1,3 +1,4 @@
+const uuidv4 = require('uuid').v4;
 const logger = require('./logger');
 
 function tryStringify(obj) {
@@ -8,7 +9,7 @@ function tryStringify(obj) {
     }
 }
 
-function errorLogger(error) {
+function errorLogger(error, req) {
     if (error.response) {
         const response = error.response;
         if (response.headers.authorization) {
@@ -18,19 +19,23 @@ function errorLogger(error) {
         logger.log(
             'debug',
             `Verify token failed: ${response.status}, ${tryStringify(response.headers)}, ${tryStringify(response.data)}`,
+            {requestId: req.requestId},
         );
     } else if (error.request) {
-        logger.log('error', `No response received: ${tryStringify(error.request)}`);
+        logger.log('error', `No response received: ${tryStringify(error.request)}`, {requestId: req.requestId});
     } else {
-        logger.log('error', `Failed to make verify request: ${error.message}`);
+        logger.log('error', `Failed to make verify request: ${error.message}`, {requestId: req.requestId});
     }
 }
 
 function requestLogger(req) {
+    if (!req.requestId) {
+        req.requestId = uuidv4();
+    }
     if (req.method === 'POST') {
-        logger.log('info', `${req.method} ${req.path}: ${tryStringify(req.body)}`);
+        logger.log('info', `${req.method} ${req.path}: ${tryStringify(req.body)}`, {requestId: req.requestId});
     } else {
-        logger.log('info', `${req.method} ${req.path}`);
+        logger.log('info', `${req.method} ${req.path}`,{requestId: req.requestId});
     }
 }
 
