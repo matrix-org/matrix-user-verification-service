@@ -33,7 +33,9 @@ function requestLogger(req) {
         req.requestId = uuidv4();
     }
     if (req.method === 'POST') {
-        logger.log('info', `${req.method} ${req.path}: ${tryStringify(req.body)}`, {requestId: req.requestId});
+        // Ensure we don't log the token
+        const loggedBody = Object.assign({}, req.body, {token: '<redacted>'});
+        logger.log('info', `${req.method} ${req.path}: ${tryStringify(loggedBody)}`, {requestId: req.requestId});
     } else {
         logger.log('info', `${req.method} ${req.path}`,{requestId: req.requestId});
     }
