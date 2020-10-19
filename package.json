@@ -1,6 +1,6 @@
 {
   "name": "matrix-user-verification-service",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Matrix service to verify users.",
   "engines": {
     "node": ">=14"

@@ -2,6 +2,8 @@
 
 ## unreleased
 
+## v1.1.0
+
 Added:
 
 * Logging, defaults to `info` level, set different level with `UVS_LOG_LEVEL`.
