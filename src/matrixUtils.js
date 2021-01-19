@@ -187,41 +187,8 @@ async function discoverHomeserverUrl(serverName) {
     };
 }
 
-/**
- * Get the OpenID UserInfo of a Matrix user.
- *
- * https://matrix.org/docs/spec/server_server/r0.1.4#openid
- *
- * @param {string}  token
- * @param {string}  homeserverUrl
- * @returns {Promise<object|null>}
- */
-async function getOpenIDUserInfo(token, homeserverUrl) {
-    // Call S2S OpenID endpoint
-    let response;
-    try {
-        response = await axios.get(
-            `${homeserverUrl}/_matrix/federation/v1/openid/userinfo?access_token=${token}`,
-            {
-                timeout: 10000,
-            },
-        );
-    } catch (e) {
-        return null;
-    }
-    const matrixId = response.body && response.body.sub;
-    if (!matrixId) {
-        return null;
-    }
-
-    return {
-        matrixId,
-    };
-}
-
 module.exports = {
     discoverHomeserverUrl,
-    getOpenIDUserInfo,
     parseHostnameAndPort,
     validateDomain,
 };

@@ -1,5 +1,6 @@
 const axios = require('axios');
 const chai = require('chai');
+const matrixUtils = require('../src/matrixUtils');
 const mockedEnv = require('mocked-env');
 const sinon = require('sinon');
 const verify = require('../src/verify');
@@ -44,6 +45,7 @@ describe('verify', function() {
         });
 
         describe('multiple homeserver mode', () => {
+            let discoverHomeserverUrlStub;
             let originalEnv;
 
             before(() => {
@@ -56,20 +58,30 @@ describe('verify', function() {
                 originalEnv();
             });
 
+            afterEach(function() {
+                discoverHomeserverUrlStub.restore();
+            });
+
             it('calls configured homeserver with token', async () => {
-                axiosStub = sinon.stub(axios, 'get').returns({data: {sub: '@user:localhost'}});
+                axiosStub = sinon.stub(axios, 'get').returns({data: {'sub': '@user:domain.tld'}});
+                discoverHomeserverUrlStub = sinon.stub(matrixUtils, 'discoverHomeserverUrl').returns(
+                    Promise.resolve({
+                        homeserverUrl: 'http://domain.tld',
+                    }),
+                );
+
                 let req = {
                     body: {
-                        matrix_server_name: 'http://localhost',
+                        matrix_server_name: 'domain.tld',
                         token: 'token',
                     },
                 };
                 const response = await verify.verifyOpenIDToken(req);
 
-                expect(response).to.equal('@user:localhost');
+                expect(response).to.equal('@user:domain.tld');
                 expect(axiosStub.calledOnce).to.be.true;
                 expect(axiosStub.firstCall.args[0]).to.include(
-                    'http://localhost/_matrix/federation/v1/openid/userinfo?access_token=token',
+                    'http://domain.tld/_matrix/federation/v1/openid/userinfo?access_token=token',
                 );
             });
         });

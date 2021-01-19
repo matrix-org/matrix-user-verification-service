@@ -1,5 +1,6 @@
 const axios = require('axios');
 const logger = require('./logger');
+const matrixUtils = require('./matrixUtils');
 const {errorLogger, tryStringify} = require('./utils');
 
 require('dotenv').config();
@@ -31,12 +32,36 @@ function sanityCheckRequest(req, res, fields=[]) {
 }
 
 async function verifyOpenIDToken(req) {
+    let homeserver;
+    let homeserverUrl;
     let response;
-    const homeserverUrl = process.env.UVS_HOMESERVER_URL;
+    if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
+        try {
+            homeserver = await matrixUtils.discoverHomeserverUrl(req.body.matrix_server_name);
+        } catch (error) {
+            logger.log('debug', `Failed to discover homeserver URL: ${error}`, {requestId: req.requestId});
+            return false;
+        }
+        homeserverUrl = homeserver.homeserverUrl;
+        if (!homeserverUrl) {
+            logger.log('debug',
+                'Empty or invalid homeserverUrl from discoverHomeserverUrl response',
+                {requestId: req.requestId},
+            );
+            return false;
+        }
+    } else {
+        homeserverUrl = process.env.UVS_HOMESERVER_URL;
+    }
     try {
         const url = `${homeserverUrl}/_matrix/federation/v1/openid/userinfo`;
         logger.log('debug', `Making request to: ${url}?access_token=redacted`, {requestId: req.requestId});
-        response = await axios.get(`${url}?access_token=${req.body.token}`);
+        response = await axios.get(
+            `${url}?access_token=${req.body.token}`,
+            {
+                timeout: 10000,
+            },
+        );
     } catch (error) {
         errorLogger(error, req);
         return false;
