@@ -33,7 +33,25 @@ UVS_PORT=3000
 # (Optional) log level, defaults to 'info'
 # See choices here: https://github.com/winstonjs/winston#logging-levels
 UVS_LOG_LEVEL=info
+# (Optional) multiple homeserver mode, defaults to disabled
+# See below for more info.
+UVS_OPENID_VERIFY_ANY_HOMESERVER=false
 ```
+
+#### OpenID token verification
+
+UVS can run in a single homeserver mode or be configured to trust any
+homeserver OpenID token. Default is to only trust the configured homeserver
+OpenID tokens.
+
+To enable multiple homeserver mode:
+
+    UVS_OPENID_VERIFY_ANY_HOMESERVER=true
+
+Note, room membership is still limited to only the configured `UVS_HOMESERVER_URL`.
+
+When running with the multiple homeserver mode, `matrix_server_name` becomes
+a required request body item for all `/verify` verification API requests.
 
 ### Running
 

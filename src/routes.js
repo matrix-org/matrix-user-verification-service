@@ -13,7 +13,11 @@ const routes = {
     },
     postVerifyUser: async(req, res) => {
         requestLogger(req);
-        const checkResult = sanityCheckRequest(req, res, ['token']);
+        const fields = ['token'];
+        if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
+            fields.push('matrix_server_name');
+        }
+        const checkResult = sanityCheckRequest(req, res, fields);
         if (!checkResult) {
             logger.log('info', 'Request sanity check failed.', {requestId: req.requestId});
             return;
@@ -35,7 +39,11 @@ const routes = {
     },
     postVerifyUserInRoom: async(req, res) => {
         requestLogger(req);
-        const checkResult = sanityCheckRequest(req, res, ['token', 'room_id']);
+        const fields = ['token', 'room_id'];
+        if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
+            fields.push('matrix_server_name');
+        }
+        const checkResult = sanityCheckRequest(req, res, fields);
         if (!checkResult) {
             logger.log('info', 'Request sanity check failed.', {requestId: req.requestId});
             return;
