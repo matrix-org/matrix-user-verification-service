@@ -10,6 +10,17 @@ const expect = chai.expect;
 
 describe('app', function() {
     let axiosStub;
+    let originalEnv;
+
+    before(() => {
+        originalEnv = mockedEnv({
+            UVS_HOMESERVER_URL: 'http://127.0.0.1',
+        });
+    });
+
+    after(() => {
+        originalEnv();
+    });
 
     afterEach(function() {
         axiosStub.restore();

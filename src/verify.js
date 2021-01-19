@@ -4,8 +4,6 @@ const {errorLogger, tryStringify} = require('./utils');
 
 require('dotenv').config();
 
-const homeserverUrl = process.env.UVS_HOMESERVER_URL;
-
 function sanityCheckRequest(req, res, fields=[]) {
     if (!req.body) {
         res.status(400);
@@ -34,6 +32,7 @@ function sanityCheckRequest(req, res, fields=[]) {
 
 async function verifyOpenIDToken(req) {
     let response;
+    const homeserverUrl = process.env.UVS_HOMESERVER_URL;
     try {
         const url = `${homeserverUrl}/_matrix/federation/v1/openid/userinfo`;
         logger.log('debug', `Making request to: ${url}?access_token=redacted`, {requestId: req.requestId});
@@ -52,6 +51,7 @@ async function verifyOpenIDToken(req) {
 
 async function verifyRoomMembership(userId, req) {
     let response;
+    const homeserverUrl = process.env.UVS_HOMESERVER_URL;
     try {
         const url = `${homeserverUrl}/_synapse/admin/v1/rooms/${req.body.room_id}/members`;
         logger.log('debug', `Making request to: ${url}`, {requestId: req.requestId});
