@@ -106,7 +106,7 @@ Failed validation:
 
 Verifies a user OpenID token and membership in a room.
 
-    POST /verify/user
+    POST /verify/user_in_room
     Content-Type: application/json
 
 Request body:
