@@ -8,7 +8,7 @@ require('../src/logger');
 
 const expect = chai.expect;
 
-describe('app', function() {
+describe('verify', function() {
     let axiosStub;
     let originalEnv;
 
