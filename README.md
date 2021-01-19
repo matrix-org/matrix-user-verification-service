@@ -1,6 +1,6 @@
 # Matrix User Verification Service
 
-Service to verify details of a user based on a Open ID Connect token.
+Service to verify details of a user based on an Open ID Connect token.
 
 Main features:
 
