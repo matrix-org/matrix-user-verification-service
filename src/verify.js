@@ -67,6 +67,19 @@ async function verifyOpenIDToken(req) {
         return false;
     }
     if (response && response.data && response.data.sub) {
+        // If using a given Matrix server name, ensure the user ID actually matches that
+        if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
+            if (!response.data.sub.endsWith(`:${req.body.matrix_server_name}`)) {
+                // This does not match, fail
+                logger.log(
+                    'warn',
+                    `Matrix user ID ${response.data.sub} from OpenID userinfo lookup does not ` +
+                        `match given matrix_server_name ${req.body.matrix_server_name}`,
+                    {requestId: req.requestId},
+                );
+                return false;
+            }
+        }
         logger.log('debug', 'Successful token verification', {requestId: req.requestId});
         return response.data.sub;
     }

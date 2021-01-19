@@ -84,6 +84,29 @@ describe('verify', function() {
                     'http://domain.tld/_matrix/federation/v1/openid/userinfo?access_token=token',
                 );
             });
+
+            it('returns false if openid token subject does not match given matrix server name', async () => {
+                axiosStub = sinon.stub(axios, 'get').returns({data: {'sub': '@user:another.domain.tld'}});
+                discoverHomeserverUrlStub = sinon.stub(matrixUtils, 'discoverHomeserverUrl').returns(
+                    Promise.resolve({
+                        homeserverUrl: 'http://domain.tld',
+                    }),
+                );
+
+                let req = {
+                    body: {
+                        matrix_server_name: 'domain.tld',
+                        token: 'token',
+                    },
+                };
+                const response = await verify.verifyOpenIDToken(req);
+
+                expect(response).to.be.false;
+                expect(axiosStub.calledOnce).to.be.true;
+                expect(axiosStub.firstCall.args[0]).to.include(
+                    'http://domain.tld/_matrix/federation/v1/openid/userinfo?access_token=token',
+                );
+            });
         });
     });
 });
