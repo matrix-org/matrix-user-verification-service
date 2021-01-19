@@ -53,6 +53,118 @@ Note, room membership is still limited to only the configured `UVS_HOMESERVER_UR
 When running with the multiple homeserver mode, `matrix_server_name` becomes
 a required request body item for all `/verify` verification API requests.
 
+### API's available
+
+#### Verify OpenID token
+
+Verifies a user OpenID token.
+
+    POST /verify/user
+    Content-Type: application/json
+
+Request body:
+
+```json
+{
+  "token": "secret token"
+}
+```
+
+If `UVS_OPENID_VERIFY_ANY_HOMESERVER` is set to `true`, the API also
+requires a `matrix_server_name`, becoming:
+
+```json
+{
+  "matrix_server_name": "domain.tld",
+  "token": "secret token"
+}
+```
+
+Successful validation response:
+
+```json
+{
+  "results": {
+    "user": true
+  },
+  "user_id": "@user:domain.tld"
+}
+```
+
+Failed validation:
+
+```json
+{
+  "results": {
+    "user": false
+  },
+  "user_id": null
+}
+```
+
+#### Verify OpenID token and room membership
+
+Verifies a user OpenID token and membership in a room.
+
+    POST /verify/user
+    Content-Type: application/json
+
+Request body:
+
+```json
+{
+  "room_id": "!foobar:domain.tld",
+  "token": "secret token"
+}
+```
+
+If `UVS_OPENID_VERIFY_ANY_HOMESERVER` is set to `true`, the API also
+requires a `matrix_server_name`, becoming:
+
+```json
+{
+  "matrix_server_name": "domain.tld",
+  "room_id": "!foobar:domain.tld",
+  "token": "secret token"
+}
+```
+
+Successful validation response:
+
+```json
+{
+  "results": {
+    "room_membership": true,
+    "user": true
+  },
+  "user_id": "@user:domain.tld"
+}
+```
+
+Failed validation, in case token is not valid:
+
+```json
+{
+  "results": {
+    "room_membership": false,
+    "user": false
+  },
+  "user_id": null
+}
+```
+
+In the token was validated but user is not in room, the failed response is:
+
+```json
+{
+  "results": {
+    "room_membership": false,
+    "user": true
+  },
+  "user_id": "@user:domain.tld"
+}
+```
+
 ### Running
 
 ```
