@@ -21,11 +21,15 @@ npm install
 Copy the default `.env.default` to `.env` and modify as needed.
 
 ```
-# Admin token (synapse only)
+# Homeserver admin token (synapse only)
 # Required for the service to verify room membership
 UVS_ACCESS_TOKEN=foobar
 # Homeserver URL
 UVS_HOMESERVER_URL=https://matrix.org
+# (Optional) auth token to protect the API
+# If this is set any calls to the provided API endpoints
+# need have the header "Authorization: Bearer changeme".
+UVS_AUTH_TOKEN=changeme
 # (Optional) listen address of the bot
 UVS_LISTEN_ADDRESS=127.0.0.1
 # (Optional) listen port of the bot
@@ -54,6 +58,12 @@ When running with the multiple homeserver mode, `matrix_server_name` becomes
 a required request body item for all `/verify` verification API requests.
 
 ### API's available
+
+### Authentication
+
+If `UVS_AUTH_TOKEN` is set, you'll need to provide an authorization header as follows:
+
+    Authorization: Bearer token
 
 #### Verify OpenID token
 
