@@ -124,6 +124,80 @@ describe('routes', function() {
                 expect(axiosStub.calledOnce).to.be.false;
             });
         });
+
+        describe('authentication', () => {
+            let originalEnv;
+
+            before(() => {
+                originalEnv = mockedEnv({
+                    UVS_AUTH_TOKEN: 'token',
+                });
+            });
+
+            after(() => {
+                originalEnv();
+            });
+
+            it('rejects if no token given', async function() {
+                axiosStub = sinon.spy(axios, 'get');
+                let req = {
+                    body: {
+                        token: 'foobar',
+                    },
+                    header: () => {},
+                };
+                let res = {
+                    send: sinon.spy(),
+                    status: sinon.spy(),
+                };
+                await routes.postVerifyUser(req, res);
+                expect(res.send.calledOnce).to.be.true;
+                expect(res.status.calledOnce).to.be.true;
+                expect(res.status.firstCall.args[0]).to.equal(403);
+                expect(axiosStub.calledOnce).to.be.false;
+            });
+
+            it('rejects if wrong token given', async function() {
+                axiosStub = sinon.spy(axios, 'get');
+                let req = {
+                    body: {
+                        token: 'foobar',
+                    },
+                    header: (header) => {
+                        return header === 'Authorization' ? 'Bearer wrongtoken' : '';
+                    },
+                };
+                let res = {
+                    send: sinon.spy(),
+                    status: sinon.spy(),
+                };
+                await routes.postVerifyUser(req, res);
+                expect(res.send.calledOnce).to.be.true;
+                expect(res.status.calledOnce).to.be.true;
+                expect(res.status.firstCall.args[0]).to.equal(403);
+                expect(axiosStub.calledOnce).to.be.false;
+            });
+
+            it('succeeds if right token given', async function() {
+                axiosStub = sinon.spy(axios, 'get');
+                let req = {
+                    body: {
+                        token: 'foobar',
+                    },
+                    header: (header) => {
+                        return header === 'Authorization' ? 'Bearer token' : '';
+                    },
+                };
+                let res = {
+                    send: sinon.spy(),
+                    status: sinon.spy(),
+                };
+                await routes.postVerifyUser(req, res);
+                expect(res.send.calledOnce).to.be.true;
+                expect(res.status.calledOnce).to.be.false;
+                expect(axiosStub.calledOnce).to.be.true;
+            });
+        });
     });
 
     describe('postVerifyUserInRoom', function() {
@@ -217,6 +291,83 @@ describe('routes', function() {
                 expect(res.status.calledOnce).to.be.true;
                 expect(res.status.firstCall.args[0]).to.equal(400);
                 expect(axiosStub.calledOnce).to.be.false;
+            });
+        });
+
+        describe('authentication', () => {
+            let originalEnv;
+
+            before(() => {
+                originalEnv = mockedEnv({
+                    UVS_AUTH_TOKEN: 'token',
+                });
+            });
+
+            after(() => {
+                originalEnv();
+            });
+
+            it('rejects if no token given', async function() {
+                axiosStub = sinon.spy(axios, 'get');
+                let req = {
+                    body: {
+                        room_id: '!foobar:domain.tld',
+                        token: 'foobar',
+                    },
+                    header: () => {},
+                };
+                let res = {
+                    send: sinon.spy(),
+                    status: sinon.spy(),
+                };
+                await routes.postVerifyUserInRoom(req, res);
+                expect(res.send.calledOnce).to.be.true;
+                expect(res.status.calledOnce).to.be.true;
+                expect(res.status.firstCall.args[0]).to.equal(403);
+                expect(axiosStub.calledOnce).to.be.false;
+            });
+
+            it('rejects if wrong token given', async function() {
+                axiosStub = sinon.spy(axios, 'get');
+                let req = {
+                    body: {
+                        room_id: '!foobar:domain.tld',
+                        token: 'foobar',
+                    },
+                    header: (header) => {
+                        return header === 'Authorization' ? 'Bearer wrongtoken' : '';
+                    },
+                };
+                let res = {
+                    send: sinon.spy(),
+                    status: sinon.spy(),
+                };
+                await routes.postVerifyUserInRoom(req, res);
+                expect(res.send.calledOnce).to.be.true;
+                expect(res.status.calledOnce).to.be.true;
+                expect(res.status.firstCall.args[0]).to.equal(403);
+                expect(axiosStub.calledOnce).to.be.false;
+            });
+
+            it('succeeds if right token given', async function() {
+                axiosStub = sinon.spy(axios, 'get');
+                let req = {
+                    body: {
+                        room_id: '!foobar:domain.tld',
+                        token: 'foobar',
+                    },
+                    header: (header) => {
+                        return header === 'Authorization' ? 'Bearer token' : '';
+                    },
+                };
+                let res = {
+                    send: sinon.spy(),
+                    status: sinon.spy(),
+                };
+                await routes.postVerifyUserInRoom(req, res);
+                expect(res.send.calledOnce).to.be.true;
+                expect(res.status.calledOnce).to.be.false;
+                expect(axiosStub.calledOnce).to.be.true;
             });
         });
     });

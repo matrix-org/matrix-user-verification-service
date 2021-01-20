@@ -4,7 +4,10 @@ const {
     verifyRoomMembership,
 } = require('./verify');
 const logger = require('./logger');
-const {requestLogger} = require('./utils');
+const {
+    authenticateRequest,
+    requestLogger,
+} = require('./utils');
 
 const routes = {
     getHealth: (req, res) => {
@@ -13,6 +16,10 @@ const routes = {
     },
     postVerifyUser: async(req, res) => {
         requestLogger(req);
+        const authenticated = authenticateRequest(req, res);
+        if (!authenticated) {
+            return;
+        }
         const fields = ['token'];
         if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
             fields.push('matrix_server_name');
@@ -29,7 +36,7 @@ const routes = {
                 user_id: null,
             });
             logger.log('info', 'User token check failed.', {requestId: req.requestId});
-            return false;
+            return;
         }
         res.send({
             results: { user: true },
@@ -39,6 +46,10 @@ const routes = {
     },
     postVerifyUserInRoom: async(req, res) => {
         requestLogger(req);
+        const authenticated = authenticateRequest(req, res);
+        if (!authenticated) {
+            return;
+        }
         const fields = ['token', 'room_id'];
         if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
             fields.push('matrix_server_name');

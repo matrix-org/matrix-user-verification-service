@@ -8,6 +8,10 @@
   only verify tokens against the configured homeserver. Room membership verification
   is still only done against the configured homeserver even if the token is for a user
   on another homeserver. ([related issue](https://github.com/matrix-org/matrix-user-verification-service/issues/3))
+  
+* Added authentication token to protect the verification API's.
+
+  Enable by setting `UVS_AUTH_TOKEN`.
 
 ### Changes
 
