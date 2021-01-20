@@ -1,5 +1,6 @@
 const axios = require('axios');
 const chai = require('chai');
+const mockedEnv = require('mocked-env');
 const sinon = require('sinon');
 const routes = require('../src/routes');
 
@@ -7,8 +8,19 @@ require('../src/logger');
 
 const expect = chai.expect;
 
-describe('app', function() {
+describe('routes', function() {
     let axiosStub;
+    let originalEnv;
+
+    before(() => {
+        originalEnv = mockedEnv({
+            UVS_HOMESERVER_URL: 'http://127.0.0.1',
+        });
+    });
+
+    after(() => {
+        originalEnv();
+    });
 
     afterEach(function() {
         axiosStub.restore();
@@ -80,6 +92,38 @@ describe('app', function() {
             });
             expect(res.send.calledOnce).to.be.true;
         });
+
+        describe('multiple homeserver mode', () => {
+            let originalEnv;
+
+            before(() => {
+                originalEnv = mockedEnv({
+                    UVS_OPENID_VERIFY_ANY_HOMESERVER: 'true',
+                });
+            });
+
+            after(() => {
+                originalEnv();
+            });
+
+            it('verify user requires a matrix_server_name', async function() {
+                axiosStub = sinon.spy(axios, 'get');
+                let req = {
+                    body: {
+                        token: 'foobar',
+                    },
+                };
+                let res = {
+                    send: sinon.spy(),
+                    status: sinon.spy(),
+                };
+                await routes.postVerifyUser(req, res);
+                expect(res.send.calledOnce).to.be.true;
+                expect(res.status.calledOnce).to.be.true;
+                expect(res.status.firstCall.args[0]).to.equal(400);
+                expect(axiosStub.calledOnce).to.be.false;
+            });
+        });
     });
 
     describe('postVerifyUserInRoom', function() {
@@ -141,6 +185,39 @@ describe('app', function() {
                 results: {user: true, room_membership: true}, user_id: '@user:synapse.local',
             });
             expect(res.send.calledOnce).to.be.true;
+        });
+
+        describe('multiple homeserver mode', () => {
+            let originalEnv;
+
+            before(() => {
+                originalEnv = mockedEnv({
+                    UVS_OPENID_VERIFY_ANY_HOMESERVER: 'true',
+                });
+            });
+
+            after(() => {
+                originalEnv();
+            });
+
+            it('verify user in room requires a matrix_server_name', async function() {
+                axiosStub = sinon.spy(axios, 'get');
+                let req = {
+                    body: {
+                        room_id: '!foobar:domain.tld',
+                        token: 'foobar',
+                    },
+                };
+                let res = {
+                    send: sinon.spy(),
+                    status: sinon.spy(),
+                };
+                await routes.postVerifyUserInRoom(req, res);
+                expect(res.send.calledOnce).to.be.true;
+                expect(res.status.calledOnce).to.be.true;
+                expect(res.status.firstCall.args[0]).to.equal(400);
+                expect(axiosStub.calledOnce).to.be.false;
+            });
         });
     });
 });

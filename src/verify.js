@@ -1,10 +1,9 @@
 const axios = require('axios');
 const logger = require('./logger');
+const matrixUtils = require('./matrixUtils');
 const {errorLogger, tryStringify} = require('./utils');
 
 require('dotenv').config();
-
-const homeserverUrl = process.env.UVS_HOMESERVER_URL;
 
 function sanityCheckRequest(req, res, fields=[]) {
     if (!req.body) {
@@ -33,16 +32,54 @@ function sanityCheckRequest(req, res, fields=[]) {
 }
 
 async function verifyOpenIDToken(req) {
+    let homeserver;
+    let homeserverUrl;
     let response;
+    if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
+        try {
+            homeserver = await matrixUtils.discoverHomeserverUrl(req.body.matrix_server_name);
+        } catch (error) {
+            logger.log('debug', `Failed to discover homeserver URL: ${error}`, {requestId: req.requestId});
+            return false;
+        }
+        homeserverUrl = homeserver.homeserverUrl;
+        if (!homeserverUrl) {
+            logger.log('debug',
+                'Empty or invalid homeserverUrl from discoverHomeserverUrl response',
+                {requestId: req.requestId},
+            );
+            return false;
+        }
+    } else {
+        homeserverUrl = process.env.UVS_HOMESERVER_URL;
+    }
     try {
         const url = `${homeserverUrl}/_matrix/federation/v1/openid/userinfo`;
         logger.log('debug', `Making request to: ${url}?access_token=redacted`, {requestId: req.requestId});
-        response = await axios.get(`${url}?access_token=${req.body.token}`);
+        response = await axios.get(
+            `${url}?access_token=${req.body.token}`,
+            {
+                timeout: 10000,
+            },
+        );
     } catch (error) {
         errorLogger(error, req);
         return false;
     }
     if (response && response.data && response.data.sub) {
+        // If using a given Matrix server name, ensure the user ID actually matches that
+        if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
+            if (!response.data.sub.endsWith(`:${req.body.matrix_server_name}`)) {
+                // This does not match, fail
+                logger.log(
+                    'warn',
+                    `Matrix user ID ${response.data.sub} from OpenID userinfo lookup does not ` +
+                        `match given matrix_server_name ${req.body.matrix_server_name}`,
+                    {requestId: req.requestId},
+                );
+                return false;
+            }
+        }
         logger.log('debug', 'Successful token verification', {requestId: req.requestId});
         return response.data.sub;
     }
@@ -52,6 +89,7 @@ async function verifyOpenIDToken(req) {
 
 async function verifyRoomMembership(userId, req) {
     let response;
+    const homeserverUrl = process.env.UVS_HOMESERVER_URL;
     try {
         const url = `${homeserverUrl}/_synapse/admin/v1/rooms/${req.body.room_id}/members`;
         logger.log('debug', `Making request to: ${url}`, {requestId: req.requestId});
