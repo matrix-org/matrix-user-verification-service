@@ -236,7 +236,9 @@ describe('routes', function() {
             await routes.postVerifyUserInRoom(req, res);
 
             expect(res.send.firstCall.args[0]).to.deep.equal({
-                results: {user: true, room_membership: false}, user_id: '@user:synapse.local',
+                results: {user: true, room_membership: false},
+                user_id: '@user:synapse.local',
+                power_levels: null,
             });
             expect(res.send.calledOnce).to.be.true;
         });
@@ -244,6 +246,36 @@ describe('routes', function() {
         it('returns true and user ID on valid token', async function() {
             axiosStub = sinon.stub(axios, 'get').onFirstCall().returns({data: {sub: '@user:synapse.local'}});
             axiosStub.onSecondCall().returns({data: {members: ['@user:synapse.local']}});
+            axiosStub.onThirdCall().returns({data: { state: [
+                {
+                    type: 'random.state_event',
+                },
+                {
+                    type: 'm.room.power_levels', content: {
+                        ban: 50,
+                        events: {
+                            'm.room.avatar': 50,
+                            'm.room.canonical_alias': 50,
+                            'm.room.history_visibility': 100,
+                            'm.room.name': 50,
+                            'm.room.power_levels': 100,
+                        },
+                        events_default: 0,
+                        invite: 0,
+                        kick: 50,
+                        redact: 50,
+                        state_default: 50,
+                        users_default: 0,
+                        users: {
+                            '@user:synapse.local': 100,
+                            '@user2:synapse.local': 50,
+                        },
+                    },
+                },
+                {
+                    type: 'some.other.state_event',
+                },
+            ]}});
             let req = {
                 body: {
                     room_id: '!barfoo:synapse.local',
@@ -256,7 +288,27 @@ describe('routes', function() {
             await routes.postVerifyUserInRoom(req, res);
 
             expect(res.send.firstCall.args[0]).to.deep.equal({
-                results: {user: true, room_membership: true}, user_id: '@user:synapse.local',
+                results: {user: true, room_membership: true},
+                user_id: '@user:synapse.local',
+                power_levels: {
+                    room: {
+                        ban: 50,
+                        events: {
+                            'm.room.avatar': 50,
+                            'm.room.canonical_alias': 50,
+                            'm.room.history_visibility': 100,
+                            'm.room.name': 50,
+                            'm.room.power_levels': 100,
+                        },
+                        events_default: 0,
+                        invite: 0,
+                        kick: 50,
+                        redact: 50,
+                        state_default: 50,
+                        users_default: 0,
+                    },
+                    user: 100,
+                },
             });
             expect(res.send.calledOnce).to.be.true;
         });

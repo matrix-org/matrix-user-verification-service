@@ -17,6 +17,10 @@
 
 * Better documentation in readme.
 
+* The `/verify/user_in_room` now also returns power levels of the room. In addition to
+  the user power level in the room returned are the levels required for various actions
+  in the room and default levels.
+
 ## v1.1.0
 
 ### Added

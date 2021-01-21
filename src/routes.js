@@ -1,4 +1,5 @@
 const {
+    getRoomPowerLevels,
     sanityCheckRequest,
     verifyOpenIDToken,
     verifyRoomMembership,
@@ -59,28 +60,40 @@ const routes = {
             logger.log('info', 'Request sanity check failed.', {requestId: req.requestId});
             return;
         }
+        // First verify token is ok
         const tokenResult = await verifyOpenIDToken(req);
         if (!tokenResult) {
             res.send({
                 results: { user: false, room_membership: null },
-                user_id: null,
+                user_id: null, power_levels: null,
             });
             logger.log('info', 'User token check failed.', {requestId: req.requestId});
             return false;
         }
+        // Then verify room membership
         // noinspection JSUnresolvedVariable
         const membershipResult = await verifyRoomMembership(tokenResult, req);
         if (!membershipResult) {
             res.send({
                 results: { user: true, room_membership: false },
-                user_id: tokenResult,
+                user_id: tokenResult, power_levels: null,
             });
             logger.log('info', 'User verified but room membership check failed.', {requestId: req.requestId});
             return;
         }
+        // Then get power level if available
+        const powerLevelResult = await getRoomPowerLevels(tokenResult, req);
+        if (!powerLevelResult) {
+            logger.log('info', 'User and room membership verified, but failed to fetch power levels',
+                {requestId: req.requestId});
+            res.send({
+                results: { user: true, room_membership: true },
+                user_id: tokenResult, power_levels: null,
+            });
+        }
         res.send({
             results: { user: true, room_membership: true },
-            user_id: tokenResult,
+            user_id: tokenResult, power_levels: powerLevelResult,
         });
         logger.log('info', 'Token and room membership check out, user verified.', {requestId: req.requestId});
     },
