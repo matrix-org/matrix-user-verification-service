@@ -6,6 +6,14 @@ require('../src/logger');
 const expect = chai.expect;
 
 describe('matrixUtils', function() {
+    describe('isDomainBlacklisted', () => {
+        it('returns correct results', async() => {
+            expect(await matrixUtils.isDomainBlacklisted('matrix.org')).to.be.false;
+            expect(await matrixUtils.isDomainBlacklisted('172.16.0.1')).to.be.true;
+            expect(await matrixUtils.isDomainBlacklisted('::ffff:172.16.0.1')).to.be.true;
+        });
+    });
+
     describe('parseHostnameAndPort', function() {
         it('returns correct results', async () => {
             expect(matrixUtils.parseHostnameAndPort('matrix.org')).to.deep.equal({
