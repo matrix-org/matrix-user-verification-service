@@ -1,8 +1,65 @@
 const axios = require('axios');
+const dnsUtils = require('./dnsUtils');
+const ipRangeCheck = require('ip-range-check');
 const net = require('net');
 const { Resolver } = require('dns').promises;
 
 const resolver = new Resolver();
+
+const ip4RangeBlacklist = [
+    '127.0.0.0/8',
+    '10.0.0.0/8',
+    '172.16.0.0/12',
+    '192.168.0.0/16',
+    '100.64.0.0/10',
+    '192.0.0.0/24',
+    '169.254.0.0/16',
+    '198.18.0.0/15',
+    '192.0.2.0/24',
+    '198.51.100.0/24',
+    '203.0.113.0/24',
+    '224.0.0.0/4',
+];
+
+const ip6RangeBlacklist = [
+    '::1/128',
+    'fe80::/10',
+    'fc00::/7',
+    'fec0::/10',
+];
+
+const ip6FromIp4Blacklist = ip4RangeBlacklist.map(a => `::ffff:${a}`);
+
+const ipRangeBlacklist = [
+    ...ip4RangeBlacklist,
+    ...ip6RangeBlacklist,
+    ...ip6FromIp4Blacklist,
+];
+
+/**
+ * Check if a domain is blacklisted via IP ranges.
+ *
+ * If it's not an IP already, resolve any addresses and check them all separately.
+ *
+ * @param {string} domain           Domain to check
+ * @returns {Promise<boolean>}      true if blacklisted
+ */
+async function isDomainBlacklisted(domain) {
+    let addresses;
+    if (!net.isIP(domain)) {
+        try {
+            addresses = await dnsUtils.resolve(domain);
+        } catch (error) {
+            return true;
+        }
+        if (addresses.length === 0) {
+            return true;
+        }
+    } else {
+        addresses = [domain];
+    }
+    return addresses.some(a => ipRangeCheck(a, ipRangeBlacklist));
+}
 
 /**
  * Validate domain name syntax.
@@ -54,6 +111,11 @@ function parseHostnameAndPort(serverName) {
 async function discoverHomeserverUrl(serverName) {
     let {hostname, port, defaultPort} = parseHostnameAndPort(serverName);
 
+    // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
+    if (await isDomainBlacklisted(hostname)) {
+        throw Error('Hostname resolves to a blacklisted IP range.');
+    }
+
     /**
      * 1. If the hostname is an IP literal, then that IP address should be used, together with the given port number,
      * or 8448 if no port is given. The target server must present a valid certificate for the IP address.
@@ -103,6 +165,11 @@ async function discoverHomeserverUrl(serverName) {
     }
     if (delegatedHostname) {
         let {dHostname, dPort, dDefaultPort} = parseHostnameAndPort(delegatedHostname);
+
+        // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
+        if (await isDomainBlacklisted(dHostname)) {
+            throw Error('Delegated hostname resolves to a blacklisted IP range.');
+        }
 
         /**
          * If <delegated_hostname> is an IP literal, then that IP address should be used together with the
@@ -189,6 +256,7 @@ async function discoverHomeserverUrl(serverName) {
 
 module.exports = {
     discoverHomeserverUrl,
+    isDomainBlacklisted,
     parseHostnameAndPort,
     validateDomain,
 };
