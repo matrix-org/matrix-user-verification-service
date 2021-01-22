@@ -159,15 +159,15 @@ async function discoverHomeserverUrl(serverName) {
                 timeout: 10000,
             },
         );
-        delegatedHostname = response.body && response.body['m.server'];
+        delegatedHostname = response.data && response.data['m.server'];
     } catch (e) {
         // Pass
     }
     if (delegatedHostname) {
-        let {dHostname, dPort, dDefaultPort} = parseHostnameAndPort(delegatedHostname);
+        const parsed = parseHostnameAndPort(delegatedHostname);
 
         // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
-        if (await isDomainBlacklisted(dHostname)) {
+        if (await isDomainBlacklisted(parsed.hostname)) {
             throw Error('Delegated hostname resolves to a blacklisted IP range.');
         }
 
@@ -177,14 +177,14 @@ async function discoverHomeserverUrl(serverName) {
          * for the IP address. Requests must be made with a Host header containing the IP address,
          * including the port if one was provided.
          */
-        if (net.isIP(dHostname)) {
+        if (net.isIP(parsed.hostname)) {
             return {
-                homeserverUrl: `https://${dHostname}:${dPort}`,
+                homeserverUrl: `https://${parsed.hostname}:${parsed.port}`,
                 serverName: delegatedHostname,
             };
         }
 
-        if (validateDomain(dHostname)) {
+        if (validateDomain(parsed.hostname)) {
             /**
              * If <delegated_hostname> is not an IP literal, and <delegated_port> is present, an IP address is
              * discovered by looking up an AAAA or A record for <delegated_hostname>. The resulting IP address
@@ -192,7 +192,7 @@ async function discoverHomeserverUrl(serverName) {
              * <delegated_hostname>:<delegated_port>. The target server must present a valid certificate for
              * <delegated_hostname>.
              */
-            if (!dDefaultPort) {
+            if (!parsed.defaultPort) {
                 return {
                     homeserverUrl: `https://${delegatedHostname}`,
                     serverName: delegatedHostname,
