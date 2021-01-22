@@ -1,14 +1,10 @@
 const dns = require('dns');
 
 function resolverFactory(resolverFn) {
-    return (domain) => new Promise((resolve, reject) => {
+    return (domain) => new Promise((resolve) => {
         resolverFn(domain, (err, addresses) => {
             if (err) {
-                if (err.errno === 'ENODATA' || err.errno === 'ENOTFOUND') {
-                    resolve([]);
-                    return;
-                }
-                reject(err);
+                resolve([]);
                 return;
             }
             resolve(addresses);
