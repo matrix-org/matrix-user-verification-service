@@ -5,6 +5,53 @@ const {errorLogger, tryStringify} = require('./utils');
 
 require('dotenv').config();
 
+/**
+ * Fetch power levels for a room.
+ *
+ * Uses Synapse admin API. Returns an object of;
+ *
+ * `room` - the content of the state event `m.room.power_levels` but with `users` removed
+ * `user` - the power level of the user
+ *
+ * @param {string} userId               Matrix user ID
+ * @param req                           Request object
+ * @returns {Promise<object|null>}
+ */
+async function getRoomPowerLevels(userId, req) {
+    let response;
+    const homeserverUrl = process.env.UVS_HOMESERVER_URL;
+    try {
+        const url = `${homeserverUrl}/_synapse/admin/v1/rooms/${req.body.room_id}/state`;
+        logger.log('debug', `Making request to: ${url}`, {requestId: req.requestId});
+        response = await axios.get(
+            url,
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
+                },
+            },
+        );
+    } catch (error) {
+        errorLogger(error, req);
+        return;
+    }
+    if (response && response.data && response.data.state) {
+        try {
+            const content = response.data.state.filter(o => o.type === 'm.room.power_levels')[0].content;
+            const userLevel = content.users[userId];
+            delete content.users;
+            return {
+                room: content,
+                user: userLevel,
+            };
+        } catch (error) {
+            logger.log('warn', `Failed to find power levels in state ${req.body.room_id}`, {requestId: req.requestId});
+            return;
+        }
+    }
+    logger.log('debug', `Failed to fetch power levels for room ${req.body.room_id}`, {requestId: req.requestId});
+}
+
 function sanityCheckRequest(req, res, fields=[]) {
     if (!req.body) {
         res.status(400);
@@ -119,6 +166,7 @@ async function verifyRoomMembership(userId, req) {
 }
 
 module.exports = {
+    getRoomPowerLevels,
     sanityCheckRequest,
     verifyOpenIDToken,
     verifyRoomMembership,

@@ -7,6 +7,8 @@ Main features:
 * Verifies a C2S [Open ID token](https://matrix.org/docs/spec/client_server/r0.6.1#id154)
   using the S2S [UserInfo endpoint](https://matrix.org/docs/spec/server_server/r0.1.4#openid).
 * Can verify user is a member in a given room (Synapse only currently, requires admin level token).
+  In addition to returning membership status, returned will be user power level, the room power 
+  defaults and required power for events.
 
 ## How to use
 
@@ -147,7 +149,26 @@ Successful validation response:
     "room_membership": true,
     "user": true
   },
-  "user_id": "@user:domain.tld"
+  "user_id": "@user:domain.tld",
+  "power_levels": {
+    "room": {
+      "ban": 50,
+      "events": {
+        "m.room.avatar": 50,
+        "m.room.canonical_alias": 50,
+        "m.room.history_visibility": 100,
+        "m.room.name": 50,
+        "m.room.power_levels": 100
+      },
+      "events_default": 0,
+      "invite": 0,
+      "kick": 50,
+      "redact": 50,
+      "state_default": 50,
+      "users_default": 0
+    },
+    "user": 50
+  }
 }
 ```
 
@@ -159,7 +180,8 @@ Failed validation, in case token is not valid:
     "room_membership": false,
     "user": false
   },
-  "user_id": null
+  "user_id": null,
+  "power_levels": null
 }
 ```
 
@@ -171,7 +193,8 @@ In the token was validated but user is not in room, the failed response is:
     "room_membership": false,
     "user": true
   },
-  "user_id": "@user:domain.tld"
+  "user_id": "@user:domain.tld",
+  "power_levels": null
 }
 ```
 
