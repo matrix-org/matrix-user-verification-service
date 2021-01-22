@@ -21,6 +21,11 @@
   the user power level in the room returned are the levels required for various actions
   in the room and default levels.
 
+### Fixed
+
+* Fix `requestLogger` to properly log the POST body, only redacting the token
+  if it's given.
+
 ## v1.1.0
 
 ### Added
