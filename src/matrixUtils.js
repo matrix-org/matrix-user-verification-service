@@ -1,65 +1,8 @@
-const axios = require('axios');
-const dnsUtils = require('./dnsUtils');
-const ipRangeCheck = require('ip-range-check');
 const net = require('net');
+const utils = require('./utils');
 const { Resolver } = require('dns').promises;
 
 const resolver = new Resolver();
-
-const ip4RangeBlacklist = [
-    '127.0.0.0/8',
-    '10.0.0.0/8',
-    '172.16.0.0/12',
-    '192.168.0.0/16',
-    '100.64.0.0/10',
-    '192.0.0.0/24',
-    '169.254.0.0/16',
-    '198.18.0.0/15',
-    '192.0.2.0/24',
-    '198.51.100.0/24',
-    '203.0.113.0/24',
-    '224.0.0.0/4',
-];
-
-const ip6RangeBlacklist = [
-    '::1/128',
-    'fe80::/10',
-    'fc00::/7',
-    'fec0::/10',
-];
-
-const ip6FromIp4Blacklist = ip4RangeBlacklist.map(a => `::ffff:${a}`);
-
-const ipRangeBlacklist = [
-    ...ip4RangeBlacklist,
-    ...ip6RangeBlacklist,
-    ...ip6FromIp4Blacklist,
-];
-
-/**
- * Check if a domain is blacklisted via IP ranges.
- *
- * If it's not an IP already, resolve any addresses and check them all separately.
- *
- * @param {string} domain           Domain to check
- * @returns {Promise<boolean>}      true if blacklisted
- */
-async function isDomainBlacklisted(domain) {
-    let addresses;
-    if (!net.isIP(domain)) {
-        try {
-            addresses = await dnsUtils.resolve(domain);
-        } catch (error) {
-            return true;
-        }
-        if (addresses.length === 0) {
-            return true;
-        }
-    } else {
-        addresses = [domain];
-    }
-    return addresses.some(a => ipRangeCheck(a, ipRangeBlacklist));
-}
 
 /**
  * Validate domain name syntax.
@@ -112,7 +55,7 @@ async function discoverHomeserverUrl(serverName) {
     let {hostname, port, defaultPort} = parseHostnameAndPort(serverName);
 
     // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
-    if (await isDomainBlacklisted(hostname)) {
+    if (await utils.isDomainBlacklisted(hostname)) {
         throw Error('Hostname resolves to a blacklisted IP range.');
     }
 
@@ -153,12 +96,7 @@ async function discoverHomeserverUrl(serverName) {
     let delegatedHostname;
     let response;
     try {
-        response = await axios.get(
-            `https://${hostname}/.well-known/matrix/server`,
-            {
-                timeout: 10000,
-            },
-        );
+        response = await utils.axiosGet(`https://${hostname}/.well-known/matrix/server`);
         delegatedHostname = response.data && response.data['m.server'];
     } catch (e) {
         // Pass
@@ -167,7 +105,7 @@ async function discoverHomeserverUrl(serverName) {
         const parsed = parseHostnameAndPort(delegatedHostname);
 
         // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
-        if (await isDomainBlacklisted(parsed.hostname)) {
+        if (await utils.isDomainBlacklisted(parsed.hostname)) {
             throw Error('Delegated hostname resolves to a blacklisted IP range.');
         }
 
@@ -256,7 +194,6 @@ async function discoverHomeserverUrl(serverName) {
 
 module.exports = {
     discoverHomeserverUrl,
-    isDomainBlacklisted,
     parseHostnameAndPort,
     validateDomain,
 };

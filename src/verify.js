@@ -1,7 +1,6 @@
-const axios = require('axios');
 const logger = require('./logger');
 const matrixUtils = require('./matrixUtils');
-const {errorLogger, tryStringify} = require('./utils');
+const utils = require('./utils');
 
 require('dotenv').config();
 
@@ -23,16 +22,15 @@ async function getRoomPowerLevels(userId, req) {
     try {
         const url = `${homeserverUrl}/_synapse/admin/v1/rooms/${req.body.room_id}/state`;
         logger.log('debug', `Making request to: ${url}`, {requestId: req.requestId});
-        response = await axios.get(
+        response = await utils.axiosGet(
             url,
+            null,
             {
-                headers: {
-                    Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
-                },
+                Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
             },
         );
     } catch (error) {
-        errorLogger(error, req);
+        utils.errorLogger(error, req);
         return;
     }
     if (response && response.data && response.data.state) {
@@ -103,14 +101,9 @@ async function verifyOpenIDToken(req) {
     try {
         const url = `${homeserverUrl}/_matrix/federation/v1/openid/userinfo`;
         logger.log('debug', `Making request to: ${url}?access_token=redacted`, {requestId: req.requestId});
-        response = await axios.get(
-            `${url}?access_token=${req.body.token}`,
-            {
-                timeout: 10000,
-            },
-        );
+        response = await utils.axiosGet(`${url}?access_token=${req.body.token}`);
     } catch (error) {
-        errorLogger(error, req);
+        utils.errorLogger(error, req);
         return false;
     }
     if (response && response.data && response.data.sub) {
@@ -130,7 +123,7 @@ async function verifyOpenIDToken(req) {
         logger.log('debug', 'Successful token verification', {requestId: req.requestId});
         return response.data.sub;
     }
-    logger.log('debug', `Failed token verification: ${tryStringify(response)}`, {requestId: req.requestId});
+    logger.log('debug', `Failed token verification: ${utils.tryStringify(response)}`, {requestId: req.requestId});
     return false;
 }
 
@@ -140,16 +133,15 @@ async function verifyRoomMembership(userId, req) {
     try {
         const url = `${homeserverUrl}/_synapse/admin/v1/rooms/${req.body.room_id}/members`;
         logger.log('debug', `Making request to: ${url}`, {requestId: req.requestId});
-        response = await axios.get(
+        response = await utils.axiosGet(
             url,
+            null,
             {
-                headers: {
-                    Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
-                },
+                Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
             },
         );
     } catch (error) {
-        errorLogger(error, req);
+        utils.errorLogger(error, req);
         return false;
     }
     if (response && response.data && response.data.members) {

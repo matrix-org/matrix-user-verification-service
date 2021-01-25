@@ -1,5 +1,9 @@
-const uuidv4 = require('uuid').v4;
+const axios = require('axios');
+const dnsUtils = require('./dnsUtils');
+const ipRangeCheck = require('ip-range-check');
 const logger = require('./logger');
+const net = require('net');
+const uuidv4 = require('uuid').v4;
 
 /**
  * Authenticate the request, if auth configured.
@@ -86,9 +90,110 @@ function requestLogger(req) {
     }
 }
 
+const ip4RangeBlacklist = [
+    '127.0.0.0/8',
+    '10.0.0.0/8',
+    '172.16.0.0/12',
+    '192.168.0.0/16',
+    '100.64.0.0/10',
+    '192.0.0.0/24',
+    '169.254.0.0/16',
+    '198.18.0.0/15',
+    '192.0.2.0/24',
+    '198.51.100.0/24',
+    '203.0.113.0/24',
+    '224.0.0.0/4',
+];
+
+const ip6RangeBlacklist = [
+    '::1/128',
+    'fe80::/10',
+    'fc00::/7',
+    'fec0::/10',
+];
+
+const ip6FromIp4Blacklist = ip4RangeBlacklist.map(a => `::ffff:${a}`);
+
+const ipRangeBlacklist = [
+    ...ip4RangeBlacklist,
+    ...ip6RangeBlacklist,
+    ...ip6FromIp4Blacklist,
+];
+
+/**
+ * Check if a domain is blacklisted via IP ranges.
+ *
+ * If it's not an IP already, resolve any addresses and check them all separately.
+ *
+ * @param {string} domain           Domain to check
+ * @returns {Promise<boolean>}      true if blacklisted
+ */
+async function isDomainBlacklisted(domain) {
+    let addresses;
+    if (!net.isIP(domain)) {
+        try {
+            addresses = await dnsUtils.resolve(domain);
+        } catch (error) {
+            return true;
+        }
+        if (addresses.length === 0) {
+            return true;
+        }
+    } else {
+        addresses = [domain];
+    }
+    return addresses.some(a => ipRangeCheck(a, ipRangeBlacklist));
+}
+
+/**
+ * Wrapped Axios GET.
+ *
+ * Check all requests, including the redirects against our blacklist.
+ * Also implements some other sane defaults like timeouts.
+ *
+ * @param {string} url                          URL to call
+ * @param {number|null} haveRedirectedTimes     Counter how many times we've redirected already
+ * @param {object|null} headers                 Extra headers to use
+ * @returns {Promise<object>}                   Response object
+ * @throws                                      On non-20x response (after redirects) or a blacklisted domain
+ */
+async function axiosGet(url, haveRedirectedTimes = null, headers = null) {
+    let redirects = haveRedirectedTimes;
+    if (!redirects) {
+        redirects = 0;
+    }
+    const urlObj = new URL(url);
+    if (await isDomainBlacklisted(urlObj.hostname)) {
+        throw new Error(`Refusing to call blacklisted hostname ${urlObj.hostname}`);
+    }
+    const response = await axios.get(
+        url,
+        {
+            headers,
+            maxRedirects: 0,
+            timeout: 10000,
+            validateStatus: function (status) {
+                // Include redirects as OK here, since we control that separately
+                return status >= 200 && status < 400;
+            },
+        },
+    );
+    if (response >= 300) {
+        if (redirects >= 4) {
+            // This was the fourth time following a redirect, abort
+            throw new Error('Maximum amount of redirects reached.');
+        }
+        return axiosGet(url, redirects + 1);
+    }
+    return response;
+}
+
+
 module.exports = {
     authenticateRequest,
+    axiosGet,
     errorLogger,
+    isDomainBlacklisted,
     requestLogger,
     tryStringify,
 };
