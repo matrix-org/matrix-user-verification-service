@@ -164,7 +164,7 @@ async function axiosGet(url, haveRedirectedTimes = null, headers = null) {
     }
     const urlObj = new URL(url);
     if (await isDomainBlacklisted(urlObj.hostname)) {
-        throw new Error(`Refusing to call blacklisted hostname ${urlObj.hostname}`);
+        throw new Error(`Refusing to call blacklisted or unresolved hostname ${urlObj.hostname}`);
     }
     const response = await axios.get(
         url,
@@ -178,12 +178,12 @@ async function axiosGet(url, haveRedirectedTimes = null, headers = null) {
             },
         },
     );
-    if (response >= 300) {
+    if (response.status >= 300) {
         if (redirects >= 4) {
             // This was the fourth time following a redirect, abort
             throw new Error('Maximum amount of redirects reached.');
         }
-        return axiosGet(url, redirects + 1);
+        return axiosGet(response.headers.location, redirects + 1);
     }
     return response;
 }
