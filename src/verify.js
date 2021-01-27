@@ -78,47 +78,60 @@ function sanityCheckRequest(req, res, fields=[]) {
 
 async function verifyOpenIDToken(req) {
     let homeserver;
-    let homeserverUrl;
     let response;
-    if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
-        try {
-            homeserver = await matrixUtils.discoverHomeserverUrl(req.body.matrix_server_name);
-        } catch (error) {
-            logger.log('debug', `Failed to discover homeserver URL: ${error}`, {requestId: req.requestId});
-            return false;
-        }
-        homeserverUrl = homeserver.homeserverUrl;
-        if (!homeserverUrl) {
-            logger.log('debug',
-                'Empty or invalid homeserverUrl from discoverHomeserverUrl response',
-                {requestId: req.requestId},
+    let serverName;
+    if (process.env.UVS_OPENID_VERIFY_SERVER_NAME) {
+        if (req.body.matrix_server_name !== process.env.UVS_OPENID_VERIFY_SERVER_NAME) {
+            // Refuse to check token against any other servers
+            logger.log(
+                'warn',
+                'Refusing to check token which is not for the server we have configured: ' +
+                    req.body.matrix_server_name,
             );
             return false;
         }
+        serverName = process.env.UVS_OPENID_VERIFY_SERVER_NAME;
     } else {
-        homeserverUrl = process.env.UVS_HOMESERVER_URL;
+        serverName = req.body.matrix_server_name;
     }
     try {
-        const url = `${homeserverUrl}/_matrix/federation/v1/openid/userinfo`;
+        homeserver = await matrixUtils.discoverHomeserverUrl(serverName);
+    } catch (error) {
+        logger.log('debug', `Failed to discover homeserver URL: ${error}`, {requestId: req.requestId});
+        return false;
+    }
+    if (!homeserver.homeserverUrl) {
+        logger.log('debug',
+            'Empty or invalid homeserverUrl from discoverHomeserverUrl response',
+            {requestId: req.requestId},
+        );
+        return false;
+    }
+    try {
+        const url = `${homeserver.homeserverUrl}/_matrix/federation/v1/openid/userinfo`;
         logger.log('debug', `Making request to: ${url}?access_token=redacted`, {requestId: req.requestId});
-        response = await utils.axiosGet(`${url}?access_token=${req.body.token}`);
+        response = await utils.axiosGet(
+            `${url}?access_token=${req.body.token}`,
+            null,
+            {
+                Host: homeserver.serverName,
+            },
+        );
     } catch (error) {
         utils.errorLogger(error, req);
         return false;
     }
     if (response && response.data && response.data.sub) {
-        // If using a given Matrix server name, ensure the user ID actually matches that
-        if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
-            if (!response.data.sub.endsWith(`:${req.body.matrix_server_name}`)) {
-                // This does not match, fail
-                logger.log(
-                    'warn',
-                    `Matrix user ID ${response.data.sub} from OpenID userinfo lookup does not ` +
-                        `match given matrix_server_name ${req.body.matrix_server_name}`,
-                    {requestId: req.requestId},
-                );
-                return false;
-            }
+        // Ensure the user ID actually matches the server name we checked against
+        if (!response.data.sub.endsWith(`:${serverName}`)) {
+            // This does not match, fail
+            logger.log(
+                'warn',
+                `Matrix user ID ${response.data.sub} from OpenID userinfo lookup does not ` +
+                    `match given matrix_server_name ${serverName}`,
+                {requestId: req.requestId},
+            );
+            return false;
         }
         logger.log('debug', 'Successful token verification', {requestId: req.requestId});
         return response.data.sub;

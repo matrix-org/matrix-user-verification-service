@@ -23,41 +23,44 @@ npm install
 Copy the default `.env.default` to `.env` and modify as needed.
 
 ```
-# Homeserver admin token (synapse only)
+## REQUIRED
+# Homeserver client API admin token (synapse only)
 # Required for the service to verify room membership
 UVS_ACCESS_TOKEN=foobar
-# Homeserver URL
+# Homeserver client API URL
 UVS_HOMESERVER_URL=https://matrix.org
-# (Optional) auth token to protect the API
+
+## OPTIONAL
+# Auth token to protect the API
 # If this is set any calls to the provided API endpoints
 # need have the header "Authorization: Bearer changeme".
 UVS_AUTH_TOKEN=changeme
-# (Optional) listen address of the bot
+# Matrix server name to verify OpenID tokens against. See below section.
+# Defaults to empty value which means verification is made against
+# whatever Matrix server name passed in with the token.
+UVS_OPENID_VERIFY_SERVER_NAME=matrix.org
+# Listen address of the bot
 UVS_LISTEN_ADDRESS=127.0.0.1
-# (Optional) listen port of the bot
+# Listen port of the bot
 UVS_PORT=3000
-# (Optional) log level, defaults to 'info'
+# Log level, defaults to 'info'
 # See choices here: https://github.com/winstonjs/winston#logging-levels
 UVS_LOG_LEVEL=info
-# (Optional) multiple homeserver mode, defaults to disabled
-# See below for more info.
-UVS_OPENID_VERIFY_ANY_HOMESERVER=false
 ```
 
 #### OpenID token verification
 
 UVS can run in a single homeserver mode or be configured to trust any
-homeserver OpenID token. Default is to only trust the configured homeserver
-OpenID tokens.
+homeserver OpenID token. Default is to trust the any Matrix server name
+that is given with the OpenID token.
 
-To enable multiple homeserver mode:
+To disable this and ensure only OpenID tokens from a single Matrix homeserver
+will be trusted, set the homeserver Matrix server name in the variable
+`UVS_OPENID_VERIFY_SERVER_NAME`. Note, this is the server name of the homeserver,
+not the client or federation API's domain.
 
-    UVS_OPENID_VERIFY_ANY_HOMESERVER=true
-
-Note, room membership is still limited to only the configured `UVS_HOMESERVER_URL`.
-
-When running with the multiple homeserver mode, `matrix_server_name` becomes
-a required request body item for all `/verify` verification API requests.
+Room membership is still currently limited to be verified from a single
+configured homeserver client API via `UVS_HOMESERVER_CLIENT_API_URL`.
 
 ### API's available
 
@@ -75,15 +78,6 @@ Verifies a user OpenID token.
     Content-Type: application/json
 
 Request body:
-
-```json
-{
-  "token": "secret token"
-}
-```
-
-If `UVS_OPENID_VERIFY_ANY_HOMESERVER` is set to `true`, the API also
-requires a `matrix_server_name`, becoming:
 
 ```json
 {
@@ -122,16 +116,6 @@ Verifies a user OpenID token and membership in a room.
     Content-Type: application/json
 
 Request body:
-
-```json
-{
-  "room_id": "!foobar:domain.tld",
-  "token": "secret token"
-}
-```
-
-If `UVS_OPENID_VERIFY_ANY_HOMESERVER` is set to `true`, the API also
-requires a `matrix_server_name`, becoming:
 
 ```json
 {

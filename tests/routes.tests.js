@@ -1,4 +1,5 @@
 const chai = require('chai');
+const matrixUtils = require('../src/matrixUtils');
 const mockedEnv = require('mocked-env');
 const sinon = require('sinon');
 const routes = require('../src/routes');
@@ -10,11 +11,20 @@ const expect = chai.expect;
 
 describe('routes', function() {
     let axiosStub;
+    let matrixUtilsStub;
     let originalEnv;
 
     before(() => {
         originalEnv = mockedEnv({
-            UVS_HOMESERVER_URL: 'http://127.0.0.1',
+            UVS_HOMESERVER_URL: 'http://synapse.local',
+        });
+    });
+
+    beforeEach(() => {
+        matrixUtilsStub = sinon.stub(matrixUtils, 'discoverHomeserverUrl');
+        matrixUtilsStub.onFirstCall().returns({
+            homeserverUrl: 'https://synapse.local',
+            serverName: 'synapse.local',
         });
     });
 
@@ -23,7 +33,14 @@ describe('routes', function() {
     });
 
     afterEach(function() {
-        axiosStub.restore();
+        try {
+            axiosStub.restore();
+        // eslint-disable-next-line no-empty
+        } catch (error) {}
+        try {
+            matrixUtilsStub.restore();
+        // eslint-disable-next-line no-empty
+        } catch (error) {}
     });
 
     describe('getHealth', function() {
@@ -45,6 +62,7 @@ describe('routes', function() {
             axiosStub = sinon.stub(utils, 'axiosGet');
             let req = {
                 body: {
+                    matrix_server_name: 'synapse.local',
                     token: 'foobar',
                 },
             };
@@ -63,6 +81,7 @@ describe('routes', function() {
             axiosStub = sinon.stub(utils, 'axiosGet').throws();
             let req = {
                 body: {
+                    matrix_server_name: 'synapse.local',
                     token: 'foobar',
                 },
             };
@@ -79,6 +98,7 @@ describe('routes', function() {
             axiosStub = sinon.stub(utils, 'axiosGet').returns({data: {sub: '@user:synapse.local'}});
             let req = {
                 body: {
+                    matrix_server_name: 'synapse.local',
                     token: 'foobar',
                 },
             };
@@ -91,38 +111,6 @@ describe('routes', function() {
                 results: {user: true}, user_id: '@user:synapse.local',
             });
             expect(res.send.calledOnce).to.be.true;
-        });
-
-        describe('multiple homeserver mode', () => {
-            let originalEnv;
-
-            before(() => {
-                originalEnv = mockedEnv({
-                    UVS_OPENID_VERIFY_ANY_HOMESERVER: 'true',
-                });
-            });
-
-            after(() => {
-                originalEnv();
-            });
-
-            it('verify user requires a matrix_server_name', async function() {
-                axiosStub = sinon.stub(utils, 'axiosGet');
-                let req = {
-                    body: {
-                        token: 'foobar',
-                    },
-                };
-                let res = {
-                    send: sinon.spy(),
-                    status: sinon.spy(),
-                };
-                await routes.postVerifyUser(req, res);
-                expect(res.send.calledOnce).to.be.true;
-                expect(res.status.calledOnce).to.be.true;
-                expect(res.status.firstCall.args[0]).to.equal(400);
-                expect(axiosStub.calledOnce).to.be.false;
-            });
         });
 
         describe('authentication', () => {
@@ -142,6 +130,7 @@ describe('routes', function() {
                 axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
+                        matrix_server_name: 'synapse.local',
                         token: 'foobar',
                     },
                     header: () => {},
@@ -161,6 +150,7 @@ describe('routes', function() {
                 axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
+                        matrix_server_name: 'synapse.local',
                         token: 'foobar',
                     },
                     header: (header) => {
@@ -182,6 +172,7 @@ describe('routes', function() {
                 axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
+                        matrix_server_name: 'synapse.local',
                         token: 'foobar',
                     },
                     header: (header) => {
@@ -205,6 +196,7 @@ describe('routes', function() {
             axiosStub = sinon.stub(utils, 'axiosGet').returns({data: {sub: '@user:synapse.local'}});
             let req = {
                 body: {
+                    matrix_server_name: 'synapse.local',
                     room_id: '!barfoo:synapse.local',
                     token: 'foobar',
                 },
@@ -226,6 +218,7 @@ describe('routes', function() {
             axiosStub.onSecondCall().returns({data: {members: []}});
             let req = {
                 body: {
+                    matrix_server_name: 'synapse.local',
                     room_id: '!barfoo:synapse.local',
                     token: 'foobar',
                 },
@@ -278,6 +271,7 @@ describe('routes', function() {
             ]}});
             let req = {
                 body: {
+                    matrix_server_name: 'synapse.local',
                     room_id: '!barfoo:synapse.local',
                     token: 'foobar',
                 },
@@ -313,39 +307,6 @@ describe('routes', function() {
             expect(res.send.calledOnce).to.be.true;
         });
 
-        describe('multiple homeserver mode', () => {
-            let originalEnv;
-
-            before(() => {
-                originalEnv = mockedEnv({
-                    UVS_OPENID_VERIFY_ANY_HOMESERVER: 'true',
-                });
-            });
-
-            after(() => {
-                originalEnv();
-            });
-
-            it('verify user in room requires a matrix_server_name', async function() {
-                axiosStub = sinon.stub(utils, 'axiosGet');
-                let req = {
-                    body: {
-                        room_id: '!foobar:domain.tld',
-                        token: 'foobar',
-                    },
-                };
-                let res = {
-                    send: sinon.spy(),
-                    status: sinon.spy(),
-                };
-                await routes.postVerifyUserInRoom(req, res);
-                expect(res.send.calledOnce).to.be.true;
-                expect(res.status.calledOnce).to.be.true;
-                expect(res.status.firstCall.args[0]).to.equal(400);
-                expect(axiosStub.calledOnce).to.be.false;
-            });
-        });
-
         describe('authentication', () => {
             let originalEnv;
 
@@ -363,6 +324,7 @@ describe('routes', function() {
                 axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
+                        matrix_server_name: 'synapse.local',
                         room_id: '!foobar:domain.tld',
                         token: 'foobar',
                     },
@@ -383,6 +345,7 @@ describe('routes', function() {
                 axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
+                        matrix_server_name: 'synapse.local',
                         room_id: '!foobar:domain.tld',
                         token: 'foobar',
                     },
@@ -405,6 +368,7 @@ describe('routes', function() {
                 axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
+                        matrix_server_name: 'synapse.local',
                         room_id: '!foobar:domain.tld',
                         token: 'foobar',
                     },
