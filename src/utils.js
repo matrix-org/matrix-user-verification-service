@@ -183,7 +183,7 @@ async function axiosGet(url, haveRedirectedTimes = null, headers = null) {
             // This was the fourth time following a redirect, abort
             throw new Error('Maximum amount of redirects reached.');
         }
-        return axiosGet(response.headers.location, redirects + 1);
+        return axiosGet(response.headers.location, redirects + 1, headers);
     }
     return response;
 }
