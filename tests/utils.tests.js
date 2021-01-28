@@ -28,6 +28,30 @@ describe('matrixUtils', function() {
             expect(axiosStub.called).to.be.false;
         });
 
+it('ensures redirection domain is not blacklisted', async() => {
+    axiosStub = sinon.stub(axios, 'get');
+                                                                 
+    axiosStub.onFirstCall().returns({
+        headers: {
+            location: 'http://127.0.0.1',
+        },
+        status: 301,
+    });
+    axiosStub.onSecondCall().returns({status: 200});
+                                                                 
+    let raised;
+    try {
+        await utils.axiosGet('https://matrix.org');
+        raised = false;
+    } catch (error) {
+        raised = true;
+    }
+                                                                 
+    expect(raised).to.be.true;
+    expect(axiosStub.calledOnce).to.be.true;
+    expect(axiosStub.calledTwice).to.be.false;
+});
+
         it('calls axios', async() => {
             axiosStub = sinon.stub(axios, 'get');
             try {
