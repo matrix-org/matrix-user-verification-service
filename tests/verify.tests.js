@@ -1,8 +1,8 @@
-const axios = require('axios');
 const chai = require('chai');
 const matrixUtils = require('../src/matrixUtils');
 const mockedEnv = require('mocked-env');
 const sinon = require('sinon');
+const utils = require('../src/utils');
 const verify = require('../src/verify');
 
 require('../src/logger');
@@ -29,7 +29,7 @@ describe('verify', function() {
         });
 
         it('calls configured homeserver with token', async () => {
-            axiosStub = sinon.stub(axios, 'get').returns({data: {sub: '@user:127.0.0.1'}});
+            axiosStub = sinon.stub(utils, 'axiosGet').returns({data: {sub: '@user:127.0.0.1'}});
             let req = {
                 body: {
                     token: 'token',
@@ -63,7 +63,7 @@ describe('verify', function() {
             });
 
             it('calls configured homeserver with token', async () => {
-                axiosStub = sinon.stub(axios, 'get').returns({data: {'sub': '@user:domain.tld'}});
+                axiosStub = sinon.stub(utils, 'axiosGet').returns({data: {'sub': '@user:domain.tld'}});
                 discoverHomeserverUrlStub = sinon.stub(matrixUtils, 'discoverHomeserverUrl').returns(
                     Promise.resolve({
                         homeserverUrl: 'http://domain.tld',
@@ -86,7 +86,7 @@ describe('verify', function() {
             });
 
             it('returns false if openid token subject does not match given matrix server name', async () => {
-                axiosStub = sinon.stub(axios, 'get').returns({data: {'sub': '@user:another.domain.tld'}});
+                axiosStub = sinon.stub(utils, 'axiosGet').returns({data: {'sub': '@user:another.domain.tld'}});
                 discoverHomeserverUrlStub = sinon.stub(matrixUtils, 'discoverHomeserverUrl').returns(
                     Promise.resolve({
                         homeserverUrl: 'http://domain.tld',

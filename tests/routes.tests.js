@@ -1,8 +1,8 @@
-const axios = require('axios');
 const chai = require('chai');
 const mockedEnv = require('mocked-env');
 const sinon = require('sinon');
 const routes = require('../src/routes');
+const utils = require('../src/utils');
 
 require('../src/logger');
 
@@ -28,7 +28,7 @@ describe('routes', function() {
 
     describe('getHealth', function() {
         it('thumbs up', function() {
-            axiosStub = sinon.spy(axios, 'get');
+            axiosStub = sinon.stub(utils, 'axiosGet');
             let req = {};
             let res = {
                 send: sinon.spy(),
@@ -42,7 +42,7 @@ describe('routes', function() {
 
     describe('postVerifyUser', function() {
         it('calls S2S API OpenID userinfo endpoint', async function() {
-            axiosStub = sinon.spy(axios, 'get');
+            axiosStub = sinon.stub(utils, 'axiosGet');
             let req = {
                 body: {
                     token: 'foobar',
@@ -60,7 +60,7 @@ describe('routes', function() {
         });
 
         it('returns false on invalid token', async function () {
-            axiosStub = sinon.stub(axios, 'get').throws();
+            axiosStub = sinon.stub(utils, 'axiosGet').throws();
             let req = {
                 body: {
                     token: 'foobar',
@@ -76,7 +76,7 @@ describe('routes', function() {
         });
 
         it('returns true and user ID on valid token', async function () {
-            axiosStub = sinon.stub(axios, 'get').returns({data: {sub: '@user:synapse.local'}});
+            axiosStub = sinon.stub(utils, 'axiosGet').returns({data: {sub: '@user:synapse.local'}});
             let req = {
                 body: {
                     token: 'foobar',
@@ -107,7 +107,7 @@ describe('routes', function() {
             });
 
             it('verify user requires a matrix_server_name', async function() {
-                axiosStub = sinon.spy(axios, 'get');
+                axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
                         token: 'foobar',
@@ -139,7 +139,7 @@ describe('routes', function() {
             });
 
             it('rejects if no token given', async function() {
-                axiosStub = sinon.spy(axios, 'get');
+                axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
                         token: 'foobar',
@@ -158,7 +158,7 @@ describe('routes', function() {
             });
 
             it('rejects if wrong token given', async function() {
-                axiosStub = sinon.spy(axios, 'get');
+                axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
                         token: 'foobar',
@@ -179,7 +179,7 @@ describe('routes', function() {
             });
 
             it('succeeds if right token given', async function() {
-                axiosStub = sinon.spy(axios, 'get');
+                axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
                         token: 'foobar',
@@ -202,7 +202,7 @@ describe('routes', function() {
 
     describe('postVerifyUserInRoom', function() {
         it('calls Synapse admin API to verify room membership', async function() {
-            axiosStub = sinon.stub(axios, 'get').returns({data: {sub: '@user:synapse.local'}});
+            axiosStub = sinon.stub(utils, 'axiosGet').returns({data: {sub: '@user:synapse.local'}});
             let req = {
                 body: {
                     room_id: '!barfoo:synapse.local',
@@ -222,7 +222,7 @@ describe('routes', function() {
         });
 
         it('returns false on invalid token', async function() {
-            axiosStub = sinon.stub(axios, 'get').onFirstCall().returns({data: {sub: '@user:synapse.local'}});
+            axiosStub = sinon.stub(utils, 'axiosGet').onFirstCall().returns({data: {sub: '@user:synapse.local'}});
             axiosStub.onSecondCall().returns({data: {members: []}});
             let req = {
                 body: {
@@ -244,7 +244,7 @@ describe('routes', function() {
         });
 
         it('returns true and user ID on valid token', async function() {
-            axiosStub = sinon.stub(axios, 'get').onFirstCall().returns({data: {sub: '@user:synapse.local'}});
+            axiosStub = sinon.stub(utils, 'axiosGet').onFirstCall().returns({data: {sub: '@user:synapse.local'}});
             axiosStub.onSecondCall().returns({data: {members: ['@user:synapse.local']}});
             axiosStub.onThirdCall().returns({data: { state: [
                 {
@@ -327,7 +327,7 @@ describe('routes', function() {
             });
 
             it('verify user in room requires a matrix_server_name', async function() {
-                axiosStub = sinon.spy(axios, 'get');
+                axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
                         room_id: '!foobar:domain.tld',
@@ -360,7 +360,7 @@ describe('routes', function() {
             });
 
             it('rejects if no token given', async function() {
-                axiosStub = sinon.spy(axios, 'get');
+                axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
                         room_id: '!foobar:domain.tld',
@@ -380,7 +380,7 @@ describe('routes', function() {
             });
 
             it('rejects if wrong token given', async function() {
-                axiosStub = sinon.spy(axios, 'get');
+                axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
                         room_id: '!foobar:domain.tld',
@@ -402,7 +402,7 @@ describe('routes', function() {
             });
 
             it('succeeds if right token given', async function() {
-                axiosStub = sinon.spy(axios, 'get');
+                axiosStub = sinon.stub(utils, 'axiosGet');
                 let req = {
                     body: {
                         room_id: '!foobar:domain.tld',
