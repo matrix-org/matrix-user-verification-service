@@ -144,7 +144,12 @@ async function discoverHomeserverUrl(serverName) {
              * a Host header containing the <delegated_hostname>. The target server must present a valid
              * certificate for <delegated_hostname>.
              */
-            const records = await resolver.resolveSrv(`_matrix._tcp.${delegatedHostname}`);
+            let records;
+            try {
+                records = await resolver.resolveSrv(`_matrix._tcp.${delegatedHostname}`);
+            } catch (error) {
+                // Pass
+            }
             if (records && records.length > 0) {
                 let record = records[0];
                 return {
@@ -171,7 +176,12 @@ async function discoverHomeserverUrl(serverName) {
      * Requests are made to the resolved IP address and port, using 8448 as a default port, with a Host
      * header of <hostname>. The target server must present a valid certificate for <hostname>.
      */
-    const records = await resolver.resolveSrv(`_matrix._tcp.${hostname}`);
+    let records;
+    try {
+        records = await resolver.resolveSrv(`_matrix._tcp.${hostname}`);
+    } catch (error) {
+        // Pass
+    }
     if (records && records.length > 0) {
         let record = records[0];
         return {
