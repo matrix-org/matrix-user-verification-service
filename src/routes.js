@@ -22,7 +22,8 @@ const routes = {
             return;
         }
         const fields = ['token'];
-        if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
+        // TODO This check can be removed in 3.0, making `matrix_server_name` just required always.
+        if (!process.env.UVS_OPENID_VERIFY_SERVER_NAME) {
             fields.push('matrix_server_name');
         }
         const checkResult = sanityCheckRequest(req, res, fields);
@@ -52,7 +53,8 @@ const routes = {
             return;
         }
         const fields = ['token', 'room_id'];
-        if (process.env.UVS_OPENID_VERIFY_ANY_HOMESERVER === 'true') {
+        // TODO This check can be removed in 3.0, making `matrix_server_name` just required always.
+        if (!process.env.UVS_OPENID_VERIFY_SERVER_NAME) {
             fields.push('matrix_server_name');
         }
         const checkResult = sanityCheckRequest(req, res, fields);
