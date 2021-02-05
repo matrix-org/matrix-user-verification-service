@@ -97,11 +97,11 @@ async function verifyOpenIDToken(req) {
     try {
         homeserver = await matrixUtils.discoverHomeserverUrl(serverName);
     } catch (error) {
-        logger.log('debug', `Failed to discover homeserver URL: ${error}`, {requestId: req.requestId});
+        logger.log('warn', `Failed to discover homeserver URL: ${error}`, {requestId: req.requestId});
         return false;
     }
     if (!homeserver.homeserverUrl) {
-        logger.log('debug',
+        logger.log('warn',
             'Empty or invalid homeserverUrl from discoverHomeserverUrl response',
             {requestId: req.requestId},
         );
@@ -123,7 +123,7 @@ async function verifyOpenIDToken(req) {
     }
     if (response && response.data && response.data.sub) {
         // Ensure the user ID actually matches the server name we checked against
-        if (!response.data.sub.endsWith(`:${serverName}`)) {
+        if (typeof response.data.sub !== 'string' || !response.data.sub.endsWith(`:${serverName}`)) {
             // This does not match, fail
             logger.log(
                 'warn',
