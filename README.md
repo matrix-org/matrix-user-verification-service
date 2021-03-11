@@ -59,6 +59,13 @@ will be trusted, set the homeserver Matrix server name in the variable
 `UVS_OPENID_VERIFY_SERVER_NAME`. Note, this is the server name of the homeserver,
 not the client or federation API's domain.
 
+In either mode, the [UserInfo endpoint](https://matrix.org/docs/spec/server_server/r0.1.4#openid)
+is determined by [resolving server names in the usual way](https://matrix.org/docs/spec/server_server/latest#resolving-server-names)
+so a `/.well-known/matrix/server` file may be needed even if the homeserver
+isn't otherwise federating. If the homeserver config doesn't have the `federation`
+listener setup, the `openid` listener can be added on the same port as the `client`
+listener.
+
 Room membership is still currently limited to be verified from a single
 configured homeserver client API via `UVS_HOMESERVER_CLIENT_API_URL`.
 
@@ -68,7 +75,7 @@ configured homeserver client API via `UVS_HOMESERVER_CLIENT_API_URL`.
 
 If `UVS_AUTH_TOKEN` is set, you'll need to provide an authorization header as follows:
 
-    Authorization: Bearer token
+    Authorization: Bearer <value of UVS_AUTH_TOKEN>
 
 #### Verify OpenID token
 
@@ -82,7 +89,7 @@ Request body:
 ```json
 {
   "matrix_server_name": "domain.tld",
-  "token": "secret token"
+  "token": "secret OpenID token provided by the user"
 }
 ```
 
@@ -121,7 +128,7 @@ Request body:
 {
   "matrix_server_name": "domain.tld",
   "room_id": "!foobar:domain.tld",
-  "token": "secret token"
+  "token": "secret OpenID token provided by the user"
 }
 ```
 
