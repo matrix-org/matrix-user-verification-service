@@ -36,7 +36,10 @@ async function getRoomPowerLevels(userId, req) {
     if (response && response.data && response.data.state) {
         try {
             const content = response.data.state.filter(o => o.type === 'm.room.power_levels')[0].content;
-            const userLevel = content.users[userId] || 0;
+            let userLevel = content.users[userId];
+            if (userLevel === undefined) {
+                userLevel = content.users_default || 0;
+            }
             delete content.users;
             return {
                 room: content,
