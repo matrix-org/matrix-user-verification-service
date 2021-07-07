@@ -121,28 +121,34 @@ const ipRangeBlacklist = [
 ];
 
 /**
- * Check if a domain is blacklisted via IP ranges.
+ * Check if adresses are blacklisted via IP ranges.
  *
- * If it's not an IP already, resolve any addresses and check them all separately.
+ * @param {array} addresses             Adresses to check
+ * @returns {boolean}                   true if blacklisted
+ */
+function isBlacklisted(addresses) {
+    return Array.from(addresses).some(a => ipRangeCheck(a, ipRangeBlacklist));
+}
+
+/**
+ * Resolve a domain.
+ * 
+ * Throws an error if not resolvable.
  *
  * @param {string} domain           Domain to check
- * @returns {Promise<boolean>}      true if blacklisted
+ * @returns {array}                 The adresses resolved from the domain
+ * @throws                          On now resovlable domains
  */
-async function isDomainBlacklisted(domain) {
-    let addresses;
+ async function resolveDomain(domain) {
     if (!net.isIP(domain)) {
         try {
-            addresses = await dnsUtils.resolve(domain);
+            return await dnsUtils.resolve(domain);
         } catch (error) {
-            return true;
-        }
-        if (addresses.length === 0) {
-            return true;
+            throw Error('Hostname not resolvable.');
         }
     } else {
-        addresses = [domain];
+        return [domain];
     }
-    return addresses.some(a => ipRangeCheck(a, ipRangeBlacklist));
 }
 
 /**
@@ -154,17 +160,21 @@ async function isDomainBlacklisted(domain) {
  * @param {string} url                          URL to call
  * @param {number|null} haveRedirectedTimes     Counter how many times we've redirected already
  * @param {object|null} headers                 Extra headers to use
+ * @param {boolean} checkBlacklist              Check if hostname of URL is on blaclist
  * @returns {Promise<object>}                   Response object
  * @throws                                      On non-20x response (after redirects) or a blacklisted domain
  */
-async function axiosGet(url, haveRedirectedTimes = null, headers = null) {
+async function axiosGet(url, haveRedirectedTimes = null, headers = null, checkBlacklist = 'true') {
     let redirects = haveRedirectedTimes;
     if (!redirects) {
         redirects = 0;
     }
     const urlObj = new URL(url);
-    if (await isDomainBlacklisted(urlObj.hostname)) {
-        throw new Error(`Refusing to call blacklisted or unresolved hostname ${urlObj.hostname}`);
+
+    let addresses = await resolveDomain(urlObj.hostname);
+
+    if (checkBlacklist === 'true' && isBlacklisted(addresses)) {
+        throw new Error(`Refusing to call blacklisted hostname ${urlObj.hostname}`);
     }
     const response = await axios.get(
         url,
@@ -193,7 +203,8 @@ module.exports = {
     authenticateRequest,
     axiosGet,
     errorLogger,
-    isDomainBlacklisted,
+    isBlacklisted,
+    resolveDomain,
     requestLogger,
     tryStringify,
 };

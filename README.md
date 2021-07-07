@@ -29,6 +29,8 @@ Copy the default `.env.default` to `.env` and modify as needed.
 UVS_ACCESS_TOKEN=foobar
 # Homeserver client API URL
 UVS_HOMESERVER_URL=https://matrix.org
+# Disable check for non private IP range of homeserver. E.g. set to false if your homeserver domain resolves to a private IP.
+UVS_HOMESERVER_IP_MUST_BE_NON_PRIVAT=true
 
 ## OPTIONAL
 # Auth token to protect the API

@@ -28,6 +28,7 @@ async function getRoomPowerLevels(userId, req) {
             {
                 Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
             },
+            process.env.UVS_HOMESERVER_IP_MUST_BE_NON_PRIVAT,          
         );
     } catch (error) {
         utils.errorLogger(error, req);
@@ -152,6 +153,7 @@ async function verifyRoomMembership(userId, req) {
             {
                 Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
             },
+            process.env.UVS_HOMESERVER_IP_MUST_BE_NON_PRIVAT,
         );
     } catch (error) {
         utils.errorLogger(error, req);
