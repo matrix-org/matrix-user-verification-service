@@ -54,11 +54,6 @@ function parseHostnameAndPort(serverName) {
 async function discoverHomeserverUrl(serverName) {
     let {hostname, port, defaultPort} = parseHostnameAndPort(serverName);
 
-    // Don't continue if we consider the adresses are on our blacklisted IP ranges
-    if (utils.isBlacklisted(utils.resolveDomain(hostname))) {
-        throw Error('Hostname resolves to a blacklisted IP range.');
-    }
-
     /**
      * 1. If the hostname is an IP literal, then that IP address should be used, together with the given port number,
      * or 8448 if no port is given. The target server must present a valid certificate for the IP address.
