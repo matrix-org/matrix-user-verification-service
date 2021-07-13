@@ -204,7 +204,7 @@ module.exports = {
     axiosGet,
     errorLogger,
     isBlacklisted,
-    resolveDomain,
     requestLogger,
+    resolveDomain,
     tryStringify,
 };
