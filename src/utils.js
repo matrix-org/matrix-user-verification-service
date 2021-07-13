@@ -137,7 +137,7 @@ function isBlacklisted(addresses) {
  *
  * @param {string} domain           Domain to check
  * @returns {array}                 The adresses resolved from the domain
- * @throws                          On now resovlable domains
+ * @throws                          On not resolvable domains
  */
  async function resolveDomain(domain) {
     if (!net.isIP(domain)) {
