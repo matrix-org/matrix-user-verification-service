@@ -103,9 +103,9 @@ it('ensures redirection domain is not blacklisted', async() => {
 
     describe('resolveDomain', () => {
         it('returns correct results', async() => {
-            expect(await utils.resolveDomain('matrix.org')).to.be.true;
-            expect(await utils.resolveDomain('test.local')).to.be.false;
-            expect(await utils.resolveDomain('test.example.com')).to.be.false;
+            expect(await utils.resolveDomain('matrix.org')).to.have.lengthOf.above(0);
+            expect(await utils.resolveDomain('test.local')).to.have.lengthOf(0);
+            expect(await utils.resolveDomain('test.example.com')).to.have.lengthOf(0);
         });
     });
 });

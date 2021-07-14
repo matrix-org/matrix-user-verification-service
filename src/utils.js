@@ -132,19 +132,16 @@ function isBlacklisted(addresses) {
 
 /**
  * Resolve a domain.
- * 
- * Throws an error if not resolvable.
  *
- * @param {string} domain           Domain to check
+ * @param {string} domain           Domain to resolve
  * @returns {array}                 The adresses resolved from the domain
- * @throws                          On not resolvable domains
  */
  async function resolveDomain(domain) {
     if (!net.isIP(domain)) {
         try {
             return await dnsUtils.resolve(domain);
         } catch (error) {
-            throw Error('Hostname not resolvable.');
+            return [];
         }
     } else {
         return [domain];
@@ -171,9 +168,7 @@ async function axiosGet(url, haveRedirectedTimes = null, headers = null, disable
     }
     const urlObj = new URL(url);
 
-    let addresses = await resolveDomain(urlObj.hostname);
-
-    if (!disableBlacklistCheck && isBlacklisted(addresses)) {
+    if (!disableBlacklistCheck && isBlacklisted(await resolveDomain(urlObj.hostname))) {
         throw new Error(`Refusing to call blacklisted hostname ${urlObj.hostname}`);
     }
     const response = await axios.get(
