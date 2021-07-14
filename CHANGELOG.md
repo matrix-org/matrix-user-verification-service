@@ -1,5 +1,11 @@
 # Changelog
 
+## unreleased
+
+### Fixed
+
+* Fallback to `users_default` if no power level is found for user in room power level check (contributed by @skolmer)
+
 ## v2.0.0
 
 ### Breaking changes
