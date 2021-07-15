@@ -2,9 +2,17 @@
 
 ## unreleased
 
+### Added
+
+* Added env variable `UVS_DISABLE_IP_BLACKLIST` to allow disabling the IP blacklist checks in private networks (contributed by @mm28ajos)
+
 ### Fixed
 
 * Fallback to `users_default` if no power level is found for user in room power level check (contributed by @skolmer)
+
+### Internal changes
+
+* Clarify `isDomainBlacklisted` by splitting it into two functions (contributed by @mm28ajos)
 
 ## v2.0.0
 
