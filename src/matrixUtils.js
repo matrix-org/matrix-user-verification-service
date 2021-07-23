@@ -55,7 +55,7 @@ async function discoverHomeserverUrl(serverName) {
     let {hostname, port, defaultPort} = parseHostnameAndPort(serverName);
 
     // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
-    if (utils.isBlacklisted(await utils.resolveDomain(hostname))) {
+    if (!process.env.UVS_DISABLE_IP_BLACKLIST && utils.isBlacklisted(await utils.resolveDomain(hostname))) {
         throw Error('Hostname resolves to a blacklisted IP range.');
     }
 
@@ -104,6 +104,7 @@ async function discoverHomeserverUrl(serverName) {
     if (delegatedHostname) {
         const parsed = parseHostnameAndPort(delegatedHostname);
 
+        // maybe we need this here as well? !process.env.UVS_DISABLE_IP_BLACKLIST && 
          // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
         if (utils.isBlacklisted(await utils.resolveDomain(parsed.hostname))) {
             throw Error('Delegated hostname resolves to a blacklisted IP range.');
