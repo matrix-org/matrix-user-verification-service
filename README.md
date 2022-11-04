@@ -69,7 +69,7 @@ listener setup, the `openid` listener can be added on the same port as the `clie
 listener.
 
 Room membership is still currently limited to be verified from a single
-configured homeserver client API via `UVS_HOMESERVER_CLIENT_API_URL`.
+configured homeserver client API via `UVS_HOMESERVER_URL`.
 
 ### API's available
 
