@@ -51,11 +51,11 @@ function parseHostnameAndPort(serverName) {
  * @param {string} serverName       The server name to discover for
  * @returns {Promise<object>}       The homeserver discovery information
  */
-async function discoverHomeserverUrl(serverName) {
+async function discoverHomeserverUrl(serverName, disableBlacklistCheck = false) {
     let {hostname, port, defaultPort} = parseHostnameAndPort(serverName);
 
     // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
-    if (utils.isBlacklisted(await utils.resolveDomain(hostname))) {
+    if (!disableBlacklistCheck && utils.isBlacklisted(await utils.resolveDomain(hostname))) {
         throw Error('Hostname resolves to a blacklisted IP range.');
     }
 
@@ -96,7 +96,7 @@ async function discoverHomeserverUrl(serverName) {
     let delegatedHostname;
     let response;
     try {
-        response = await utils.axiosGet(`https://${hostname}/.well-known/matrix/server`);
+        response = await utils.axiosGet(`https://${hostname}/.well-known/matrix/server`, null, {}, disableBlacklistCheck);
         delegatedHostname = response.data && response.data['m.server'];
     } catch (e) {
         // Pass

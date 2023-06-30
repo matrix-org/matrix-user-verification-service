@@ -99,7 +99,7 @@ async function verifyOpenIDToken(req) {
         serverName = req.body.matrix_server_name;
     }
     try {
-        homeserver = await matrixUtils.discoverHomeserverUrl(serverName);
+        homeserver = await matrixUtils.discoverHomeserverUrl(serverName, process.env.UVS_DISABLE_IP_BLACKLIST === 'true');
     } catch (error) {
         logger.log('warn', `Failed to discover homeserver URL: ${error}`, {requestId: req.requestId});
         return false;
@@ -120,6 +120,7 @@ async function verifyOpenIDToken(req) {
             {
                 Host: homeserver.serverName,
             },
+            process.env.UVS_DISABLE_IP_BLACKLIST === 'true',
         );
     } catch (error) {
         utils.errorLogger(error, req);

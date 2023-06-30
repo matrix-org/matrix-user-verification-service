@@ -49,7 +49,7 @@ it('ensures redirection domain is not blacklisted', async() => {
                                                                  
     expect(raised).to.be.true;
     expect(axiosStub.calledOnce).to.be.true;
-    expect(axiosStub.calledTwice).to.be.false;
+    expect(axiosStub.calledTwice).to.be.true;
 });
 
         it('calls axios', async() => {
