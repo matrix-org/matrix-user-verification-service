@@ -202,7 +202,7 @@ npm start
 Run in watch mode.
 
 ```
-npm dev
+npm run dev
 ```
 
 ## License
