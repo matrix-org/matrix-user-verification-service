@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "Matrix service to verify users.",
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   },
   "main": "src/app.js",
   "scripts": {
