@@ -3,7 +3,7 @@ const dnsUtils = require('./dnsUtils');
 const ipRangeCheck = require('ip-range-check');
 const logger = require('./logger');
 const net = require('net');
-const uuidv4 = require('uuid').v4;
+const { randomUUID } = require('crypto');
 
 /**
  * Authenticate the request, if auth configured.
@@ -76,7 +76,7 @@ function errorLogger(error, req) {
 
 function requestLogger(req) {
     if (!req.requestId) {
-        req.requestId = uuidv4();
+        req.requestId = randomUUID();
     }
     if (req.method === 'POST') {
         let loggedBody = Object.assign({}, req.body);
