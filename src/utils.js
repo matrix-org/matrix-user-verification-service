@@ -158,7 +158,6 @@ function isBlacklisted(addresses) {
  * @param {string} url                          URL to call
  * @param {number|null} haveRedirectedTimes     Counter how many times we've redirected already
  * @param {object|null} headers                 Extra headers to use
- * @param {boolean} checkBlacklist              Check if hostname of URL is on blaclist
  * @returns {Promise<object>}                   Response object
  * @throws                                      On non-20x response (after redirects) or a blacklisted domain
  */
