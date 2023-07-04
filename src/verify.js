@@ -27,8 +27,7 @@ async function getRoomPowerLevels(userId, req) {
             null,
             {
                 Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
-            },
-            process.env.UVS_DISABLE_IP_BLACKLIST === 'true',
+            }
         );
     } catch (error) {
         utils.errorLogger(error, req);
@@ -155,8 +154,7 @@ async function verifyRoomMembership(userId, req) {
             null,
             {
                 Authorization: `Bearer ${process.env.UVS_ACCESS_TOKEN}`,
-            },
-            process.env.UVS_DISABLE_IP_BLACKLIST === 'true',
+            }
         );
     } catch (error) {
         utils.errorLogger(error, req);
