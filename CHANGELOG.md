@@ -10,6 +10,8 @@
 
 * Fallback to `users_default` if no power level is found for user in room power level check (contributed by @skolmer)
 
+* Fix `UVS_DISABLE_IP_BLACKLIST` to cover all cases when Matrix is also on a local network (contributed by @thermaq)
+
 ### Internal changes
 
 * Clarify `isDomainBlacklisted` by splitting it into two functions (contributed by @mm28ajos)
