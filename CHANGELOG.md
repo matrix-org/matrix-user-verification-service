@@ -1,6 +1,8 @@
-# Changelog
+# v3.0.0
 
-## unreleased
+### Breaking changes
+
+* This project now requires Node 18 or greater.
 
 ### Added
 
