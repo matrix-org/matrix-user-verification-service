@@ -119,6 +119,7 @@ async function verifyOpenIDToken(req) {
             {
                 Host: homeserver.serverName,
             },
+            process.env.UVS_DISABLE_IP_BLACKLIST === 'true',
         );
     } catch (error) {
         utils.errorLogger(error, req);
