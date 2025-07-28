@@ -1,8 +1,6 @@
 const winston = require('winston');
 const { combine, timestamp, prettyPrint } = winston.format;
 
-require('dotenv').config();
-
 winston.configure({
     format: combine(
         timestamp(),
