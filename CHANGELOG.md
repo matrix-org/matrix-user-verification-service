@@ -1,6 +1,8 @@
-# Changelog
+# v3.0.0
 
-## unreleased
+### Breaking changes
+
+* This project now requires Node 18 or greater.
 
 ### Added
 
@@ -9,6 +11,8 @@
 ### Fixed
 
 * Fallback to `users_default` if no power level is found for user in room power level check (contributed by @skolmer)
+
+* Fix `UVS_DISABLE_IP_BLACKLIST` to cover all cases when Matrix is also on a local network (contributed by @thermaq)
 
 ### Internal changes
 

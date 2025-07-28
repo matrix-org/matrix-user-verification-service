@@ -1,5 +1,6 @@
 const net = require('net');
 const utils = require('./utils');
+const logger = require('./logger');
 const { Resolver } = require('dns').promises;
 
 const resolver = new Resolver();
@@ -99,7 +100,7 @@ async function discoverHomeserverUrl(serverName) {
         response = await utils.axiosGet(`https://${hostname}/.well-known/matrix/server`);
         delegatedHostname = response.data && response.data['m.server'];
     } catch (e) {
-        // Pass
+        logger.log('debug', `Failed to fetch .well-known: ${e}`);
     }
     if (delegatedHostname) {
         const parsed = parseHostnameAndPort(delegatedHostname);

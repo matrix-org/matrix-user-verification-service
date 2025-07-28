@@ -127,6 +127,7 @@ const ipRangeBlacklist = [
  * @returns {boolean}                   true if blacklisted
  */
 function isBlacklisted(addresses) {
+    if (process.env.UVS_DISABLE_IP_BLACKLIST === 'true') return false;
     return Array.from(addresses).some(a => ipRangeCheck(a, ipRangeBlacklist));
 }
 
@@ -157,18 +158,17 @@ function isBlacklisted(addresses) {
  * @param {string} url                          URL to call
  * @param {number|null} haveRedirectedTimes     Counter how many times we've redirected already
  * @param {object|null} headers                 Extra headers to use
- * @param {boolean} checkBlacklist              Check if hostname of URL is on blaclist
  * @returns {Promise<object>}                   Response object
  * @throws                                      On non-20x response (after redirects) or a blacklisted domain
  */
-async function axiosGet(url, haveRedirectedTimes = null, headers = null, disableBlacklistCheck = false) {
+async function axiosGet(url, haveRedirectedTimes = null, headers = null) {
     let redirects = haveRedirectedTimes;
     if (!redirects) {
         redirects = 0;
     }
     const urlObj = new URL(url);
 
-    if (!disableBlacklistCheck && isBlacklisted(await resolveDomain(urlObj.hostname))) {
+    if (isBlacklisted(await resolveDomain(urlObj.hostname))) {
         throw new Error(`Refusing to call blacklisted hostname ${urlObj.hostname}`);
     }
     const response = await axios.get(
