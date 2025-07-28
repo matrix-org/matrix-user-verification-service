@@ -46,7 +46,7 @@ async function getRoomPowerLevels(userId, req) {
                 user: userLevel,
             };
         } catch (error) {
-            logger.log('warn', `Failed to find power levels in state ${req.body.room_id}`, {requestId: req.requestId});
+            logger.log('warn', `Failed to find power levels in state ${req.body.room_id}`, {requestId: req.requestId}, error);
             return;
         }
     }

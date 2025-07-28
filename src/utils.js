@@ -36,7 +36,7 @@ function authenticateRequest(req, res) {
             return true;
         }
     } catch (error) {
-        logger.log('warn', 'Failed to parse authentication header.', {requestId: req.requestId});
+        logger.log('warn', 'Failed to parse authentication header.', {requestId: req.requestId}, error);
         res.status(403);
         res.send({});
         return false;
@@ -50,7 +50,7 @@ function authenticateRequest(req, res) {
 function tryStringify(obj) {
     try {
         return JSON.stringify(obj);
-    } catch (error) {
+    } catch {
         return obj;
     }
 }
@@ -137,11 +137,11 @@ function isBlacklisted(addresses) {
  * @param {string} domain           Domain to resolve
  * @returns {array}                 The adresses resolved from the domain
  */
- async function resolveDomain(domain) {
+async function resolveDomain(domain) {
     if (!net.isIP(domain)) {
         try {
             return await dnsUtils.resolve(domain);
-        } catch (error) {
+        } catch {
             return [];
         }
     } else {
