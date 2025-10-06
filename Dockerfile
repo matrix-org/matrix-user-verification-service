@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:22-slim
 
 WORKDIR /app
 
@@ -12,4 +12,4 @@ ENV UVS_LISTEN_ADDRESS=0.0.0.0
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["node", "src/app.js"]

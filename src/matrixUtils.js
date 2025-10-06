@@ -105,7 +105,7 @@ async function discoverHomeserverUrl(serverName) {
     if (delegatedHostname) {
         const parsed = parseHostnameAndPort(delegatedHostname);
 
-         // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
+        // Don't continue if we consider the hostname part to resolve to our blacklisted IP ranges
         if (utils.isBlacklisted(await utils.resolveDomain(parsed.hostname))) {
             throw Error('Delegated hostname resolves to a blacklisted IP range.');
         }
@@ -148,7 +148,7 @@ async function discoverHomeserverUrl(serverName) {
             let records;
             try {
                 records = await resolver.resolveSrv(`_matrix._tcp.${delegatedHostname}`);
-            } catch (error) {
+            } catch {
                 // Pass
             }
             if (records && records.length > 0) {
@@ -180,7 +180,7 @@ async function discoverHomeserverUrl(serverName) {
     let records;
     try {
         records = await resolver.resolveSrv(`_matrix._tcp.${hostname}`);
-    } catch (error) {
+    } finally {
         // Pass
     }
     if (records && records.length > 0) {
