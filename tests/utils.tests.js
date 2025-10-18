@@ -98,6 +98,7 @@ it('ensures redirection domain is not blacklisted', async() => {
             expect(await utils.isBlacklisted('8.8.8.8')).to.be.false;
             expect(await utils.isBlacklisted(['172.16.0.1'])).to.be.true;
             expect(await utils.isBlacklisted(['::ffff:172.16.0.1'])).to.be.true;
+            expect(await utils.isBlacklisted(['::ffff:8.8.8.8'])).to.be.false;
         });
     });
 

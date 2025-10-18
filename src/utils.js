@@ -112,12 +112,9 @@ const ip6RangeBlacklist = [
     'fec0::/10',
 ];
 
-const ip6FromIp4Blacklist = ip4RangeBlacklist.map(a => `::ffff:${a}`);
-
 const ipRangeBlacklist = [
     ...ip4RangeBlacklist,
     ...ip6RangeBlacklist,
-    ...ip6FromIp4Blacklist,
 ];
 
 /**
