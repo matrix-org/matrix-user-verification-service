@@ -92,6 +92,7 @@ const routes = {
                 results: { user: true, room_membership: true },
                 user_id: tokenResult, power_levels: null,
             });
+            return;
         }
         res.send({
             results: { user: true, room_membership: true },

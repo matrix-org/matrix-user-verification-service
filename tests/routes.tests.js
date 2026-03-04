@@ -236,6 +236,30 @@ describe('routes', function() {
             expect(res.send.calledOnce).to.be.true;
         });
 
+        it('returns true but without power levels on error to power levels request', async function() {
+            axiosStub = sinon.stub(utils, 'axiosGet').onFirstCall().returns({data: {sub: '@user:synapse.local'}});
+            axiosStub.onSecondCall().returns({data: {members: ['@user:synapse.local']}});
+            axiosStub.onThirdCall().throws(new Error());
+            let req = {
+                body: {
+                    matrix_server_name: 'synapse.local',
+                    room_id: '!barfoo:synapse.local',
+                    token: 'foobar',
+                },
+            };
+            let res = {
+                send: sinon.spy(),
+            };
+            await routes.postVerifyUserInRoom(req, res);
+
+            expect(res.send.firstCall.args[0]).to.deep.equal({
+                results: {user: true, room_membership: true},
+                user_id: '@user:synapse.local',
+                power_levels: null,
+            });
+            expect(res.send.calledOnce).to.be.true;
+        });
+
         it('returns true and user ID on valid token', async function() {
             axiosStub = sinon.stub(utils, 'axiosGet').onFirstCall().returns({data: {sub: '@user:synapse.local'}});
             axiosStub.onSecondCall().returns({data: {members: ['@user:synapse.local']}});
