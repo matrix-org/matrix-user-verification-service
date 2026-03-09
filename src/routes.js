@@ -12,7 +12,9 @@ const {
 
 const routes = {
     getHealth: (req, res) => {
-        requestLogger(req);
+        if (process.env.UVS_LOG_HEALTH === 'true') {
+            requestLogger(req);
+        }
         res.send('👍');
     },
     postVerifyUser: async(req, res) => {

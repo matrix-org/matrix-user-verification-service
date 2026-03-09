@@ -48,6 +48,9 @@ UVS_PORT=3000
 # Log level, defaults to 'info'
 # See choices here: https://github.com/winstonjs/winston#logging-levels
 UVS_LOG_LEVEL=info
+# If `true`, enables request logging for the /health endpoint.
+# Defaults to `false` to reduce log noise from health checks.
+UVS_LOG_HEALTH=false
 ```
 
 #### OpenID token verification
