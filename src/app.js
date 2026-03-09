@@ -20,6 +20,18 @@ app.post('/verify/user_in_room', routes.postVerifyUserInRoom);
 
 logger.log('info', `Attempting to listen on ${listenAddress}:${port}`);
 
-app.listen(port, listenAddress, () => {
+const server = app.listen(port, listenAddress, () => {
     logger.log('info', `Verify user service listening at ${listenAddress}:${port}`);
 });
+
+// Graceful shutdown handler
+const shutdown = (signal) => {
+    logger.log('info', `Received ${signal}, shutting down gracefully...`);
+    server.close(() => {
+        logger.log('info', 'Server closed');
+        process.exit(0);
+    });
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
