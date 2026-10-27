@@ -1,3 +1,9 @@
+## v4.0.1
+
+### Internal changes
+
+* CI: Push releases to Docker Hub.
+
 ## v4.0.0
 
 ### Breaking changes 
