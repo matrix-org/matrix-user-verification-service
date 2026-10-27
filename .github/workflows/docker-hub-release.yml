@@ -37,4 +37,4 @@ jobs:
           platforms: ${{ env.PLATFORMS }}
           push: true
           tags: |
-            ${{ env.DOCKER_NAMESPACE }}/mjolnir:${{ env.RELEASE_VERSION }}
+            ${{ env.DOCKER_NAMESPACE }}/matrix-user-verification-service:${{ env.RELEASE_VERSION }}
