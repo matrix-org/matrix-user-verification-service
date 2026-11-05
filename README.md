@@ -48,6 +48,10 @@ UVS_PORT=3000
 # Log level, defaults to 'info'
 # See choices here: https://github.com/winstonjs/winston#logging-levels
 UVS_LOG_LEVEL=info
+# If `true`. ignores TLS certificate verification errors for outgoing requests
+# Defaults to `false`. Set to `true` if your homeserver has a self-signed certificate or other TLS issues.
+# Should only be set to `true` if you understand the security implications of doing so.
+UVS_IGNORE_TLS=false
 ```
 
 #### OpenID token verification

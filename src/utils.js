@@ -1,9 +1,20 @@
 const axios = require('axios');
+const https = require('https');
 const dnsUtils = require('./dnsUtils');
 const ipRangeCheck = require('ip-range-check');
 const logger = require('./logger');
 const net = require('net');
 const { randomUUID } = require('crypto');
+
+// Create an https agent that ignores TLS certificate errors when UVS_IGNORE_TLS is set
+const ignoreTls = process.env.UVS_IGNORE_TLS === 'true';
+const httpsAgent = ignoreTls
+    ? new https.Agent({ rejectUnauthorized: false })
+    : undefined;
+
+if (ignoreTls) {
+    logger.log('warn', 'TLS certificate verification is disabled for outgoing requests (UVS_IGNORE_TLS=true)');
+}
 
 /**
  * Authenticate the request, if auth configured.
@@ -175,6 +186,7 @@ async function axiosGet(url, haveRedirectedTimes = null, headers = null) {
         url,
         {
             headers,
+            httpsAgent,
             maxRedirects: 0,
             timeout: 10000,
             validateStatus: function (status) {
