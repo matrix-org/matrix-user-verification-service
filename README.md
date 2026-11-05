@@ -48,6 +48,9 @@ UVS_PORT=3000
 # Log level, defaults to 'info'
 # See choices here: https://github.com/winstonjs/winston#logging-levels
 UVS_LOG_LEVEL=info
+# Log format: 'json' (default), 'json-logstash', or 'pretty'.
+# Use 'pretty' for local development, 'json' or 'json-logstash' for production.
+UVS_LOG_FORMAT=json
 ```
 
 #### OpenID token verification
