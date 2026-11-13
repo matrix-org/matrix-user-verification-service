@@ -111,4 +111,77 @@ describe('verify', function() {
             });
         });
     });
+
+    describe('getRoomPowerLevels', function() {
+        const creator = '@creator:domain.tld';
+        const additionalCreator = '@additional:domain.tld';
+        const member = '@member:domain.tld';
+        const moderator = '@moderator:domain.tld';
+
+        // A fresh state for every call: getRoomPowerLevels deletes `users` from the
+        // power levels content it is given.
+        function roomState(roomVersion, additionalCreators) {
+            const createContent = {};
+            if (roomVersion !== undefined) {
+                createContent.room_version = roomVersion;
+            }
+            if (additionalCreators !== undefined) {
+                createContent.additional_creators = additionalCreators;
+            }
+            return {
+                data: {
+                    state: [
+                        {type: 'm.room.create', state_key: '', sender: creator, content: createContent},
+                        {
+                            type: 'm.room.power_levels',
+                            state_key: '',
+                            sender: creator,
+                            content: {users: {[moderator]: 50}, users_default: 0, state_default: 50},
+                        },
+                    ],
+                },
+            };
+        }
+
+        async function levelFor(userId, roomVersion, additionalCreators) {
+            axiosStub = sinon.stub(utils, 'axiosGet').returns(roomState(roomVersion, additionalCreators));
+            const response = await verify.getRoomPowerLevels(userId, {body: {room_id: '!room:domain.tld'}});
+            axiosStub.restore();
+            return response;
+        }
+
+        it('returns users_default for a creator not listed in users before room version 12', async () => {
+            for (const version of [undefined, '1', '10', '11']) {
+                const response = await levelFor(creator, version);
+                expect(response.user, `room version ${version}`).to.equal(0);
+            }
+        });
+
+        it('returns maximum power for the creator of a room version 12 room', async () => {
+            const response = await levelFor(creator, '12');
+            expect(response.user).to.equal(Number.MAX_SAFE_INTEGER);
+            expect(response.room.state_default).to.equal(50);
+            expect(response.room.users).to.be.undefined;
+        });
+
+        it('returns maximum power for an additional creator of a room version 12 room', async () => {
+            const response = await levelFor(additionalCreator, '12', [additionalCreator]);
+            expect(response.user).to.equal(Number.MAX_SAFE_INTEGER);
+        });
+
+        it('returns maximum power for the creator of an org.matrix.hydra.11 room', async () => {
+            const response = await levelFor(creator, 'org.matrix.hydra.11');
+            expect(response.user).to.equal(Number.MAX_SAFE_INTEGER);
+        });
+
+        it('does not change other users in a room version 12 room', async () => {
+            expect((await levelFor(moderator, '12', [additionalCreator])).user).to.equal(50);
+            expect((await levelFor(member, '12', [additionalCreator])).user).to.equal(0);
+        });
+
+        it('ignores additional_creators before room version 12', async () => {
+            const response = await levelFor(additionalCreator, '11', [additionalCreator]);
+            expect(response.user).to.equal(0);
+        });
+    });
 });
