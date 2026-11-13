@@ -3,6 +3,30 @@ const matrixUtils = require('./matrixUtils');
 const utils = require('./utils');
 
 /**
+ * Whether the user is a creator of a room whose version gives creators their power implicitly.
+ *
+ * From room version 12 (and its test version org.matrix.hydra.11) the sender of `m.room.create`
+ * and the users in its `additional_creators` have unlimited power and must not be listed in
+ * `m.room.power_levels`, so a lookup in `users` alone sees them at `users_default`.
+ *
+ * @param {object[]} state              Room state events from the Synapse admin API
+ * @param {string} userId               Matrix user ID
+ * @returns {boolean}
+ */
+function isRoomCreator(state, userId) {
+    const create = state.find(o => o.type === 'm.room.create' && o.state_key === '');
+    if (!create || !create.content) {
+        return false;
+    }
+    const version = String(create.content.room_version || '1');
+    if (version !== 'org.matrix.hydra.11' && !(/^\d+$/.test(version) && Number(version) >= 12)) {
+        return false;
+    }
+    const additional = Array.isArray(create.content.additional_creators) ? create.content.additional_creators : [];
+    return create.sender === userId || additional.includes(userId);
+}
+
+/**
  * Fetch power levels for a room.
  *
  * Uses Synapse admin API. Returns an object of;
@@ -37,6 +61,9 @@ async function getRoomPowerLevels(userId, req) {
             let userLevel = content.users[userId];
             if (!Number.isFinite(userLevel)) {
                 userLevel = content.users_default || 0;
+            }
+            if (isRoomCreator(response.data.state, userId)) {
+                userLevel = Number.MAX_SAFE_INTEGER;
             }
             delete content.users;
             return {
